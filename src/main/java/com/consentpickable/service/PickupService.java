@@ -128,7 +128,7 @@ public final class PickupService {
             return false;
         }
 
-        final var itemPos = new Vector3d(itemTransform.getPosition());
+        final var itemPos = itemTransform.getPosition();
         if (itemPos.distanceSquared(playerTransform.getPosition()) > maxDistSq) {
             final var session = getSession(playerRef.getUuid());
             if (session != null) {
@@ -223,6 +223,16 @@ public final class PickupService {
                                           @Nonnull final Ref<EntityStore> itemRef,
                                           final float dt,
                                           final double maxDistSq) {
+        return tryPickupIntoExistingStacks(accessor, playerEntityRef, playerRef, itemRef, dt, maxDistSq, null);
+    }
+
+    public int tryPickupIntoExistingStacks(@Nonnull final ComponentAccessor<EntityStore> accessor,
+                                          @Nonnull final Ref<EntityStore> playerEntityRef,
+                                          @Nonnull final PlayerRef playerRef,
+                                          @Nonnull final Ref<EntityStore> itemRef,
+                                          final float dt,
+                                          final double maxDistSq,
+                                          @Nullable final CombinedItemContainer preloadedContainer) {
         if (!playerEntityRef.isValid() || !itemRef.isValid()) {
             return 0;
         }
@@ -254,12 +264,12 @@ public final class PickupService {
             return 0;
         }
 
-        final Vector3d itemPos = new Vector3d(itemTransform.getPosition());
+        final Vector3d itemPos = itemTransform.getPosition();
         if (itemPos.distanceSquared(playerTransform.getPosition()) > maxDistSq) {
             return 0;
         }
 
-        final CombinedItemContainer combined = InventoryComponent.getCombined(
+        final CombinedItemContainer combined = preloadedContainer != null ? preloadedContainer : InventoryComponent.getCombined(
                 accessor, playerEntityRef, InventoryComponent.HOTBAR_STORAGE_BACKPACK
         );
         if (combined == null) {

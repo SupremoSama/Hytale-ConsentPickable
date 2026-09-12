@@ -22,6 +22,7 @@ import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.hypixel.hytale.function.predicate.BiIntPredicate;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
 
@@ -44,6 +45,8 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
             TransformComponent.getComponentType(),
             HeadRotation.getComponentType()
     );
+
+    private static final BiIntPredicate SOLID_BLOCK_FILTER = (blockId, fluidId) -> blockId != 0;
 
     @Nonnull
     @Override
@@ -72,7 +75,7 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
         final PlayerTargetSession session = PickupService.getInstance().getOrCreateSession(playerRef.getUuid());
         final long nowMs = System.currentTimeMillis();
 
-        if (session.shouldSkipScan(eyePos, lookDir, nowMs) && session.hasTarget()) {
+        if (session.shouldSkipScan(eyePos, lookDir, nowMs)) {
             return;
         }
         session.updatePose(eyePos, lookDir, nowMs);
@@ -140,7 +143,7 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
         if (bestItemRef != null) {
             final Vector3i hitBlock = TargetUtil.getTargetBlock(
                     store.getExternalData().getWorld().getChunkStore(),
-                    (blockId, fluidId) -> blockId != 0,
+                    SOLID_BLOCK_FILTER,
                     eyePos.x, eyePos.y, eyePos.z,
                     lookDir.x, lookDir.y, lookDir.z,
                     bestT

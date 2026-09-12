@@ -1,0 +1,3 @@
+﻿action.pickup = AUFHEBEN
+pickup = AUFHEBEN
+consentpickable.action.pickup = AUFHEBEN

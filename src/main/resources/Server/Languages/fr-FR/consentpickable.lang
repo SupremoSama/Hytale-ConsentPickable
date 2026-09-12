@@ -1,0 +1,3 @@
+﻿action.pickup = RAMASSER
+pickup = RAMASSER
+consentpickable.action.pickup = RAMASSER

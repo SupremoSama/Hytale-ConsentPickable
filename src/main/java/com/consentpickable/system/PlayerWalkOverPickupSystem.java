@@ -75,6 +75,13 @@ public final class PlayerWalkOverPickupSystem extends EntityTickingSystem<Entity
             return;
         }
 
+        final var session = PickupService.getInstance().getOrCreateSession(playerRef.getUuid());
+        final long nowMs = System.currentTimeMillis();
+        if (session.shouldSkipWalkOver(nowMs)) {
+            return;
+        }
+        session.updateWalkOverTime(nowMs);
+
         final Vector3d playerPos = playerTransform.getPosition();
 
         // Perform fast KD-tree proximity query around player
@@ -87,12 +94,21 @@ public final class PlayerWalkOverPickupSystem extends EntityTickingSystem<Entity
             return;
         }
 
+        com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer combined = null;
         for (final Ref<EntityStore> itemRef : candidateRefs) {
             if (itemRef == null || !itemRef.isValid()) {
                 continue;
             }
+            if (combined == null) {
+                combined = com.hypixel.hytale.server.core.inventory.InventoryComponent.getCombined(
+                        commandBuffer, playerEntityRef, com.hypixel.hytale.server.core.inventory.InventoryComponent.HOTBAR_STORAGE_BACKPACK
+                );
+                if (combined == null) {
+                    return;
+                }
+            }
             PickupService.getInstance().tryPickupIntoExistingStacks(
-                    commandBuffer, playerEntityRef, playerRef, itemRef, dt, WALK_OVER_RADIUS_SQ
+                    commandBuffer, playerEntityRef, playerRef, itemRef, dt, WALK_OVER_RADIUS_SQ, combined
             );
         }
     }

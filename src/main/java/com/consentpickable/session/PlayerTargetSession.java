@@ -62,12 +62,22 @@ public class PlayerTargetSession {
         return lastItemName;
     }
 
+    public static final long MIN_SCAN_INTERVAL_MS = 50;
+    public static final long STATIONARY_SCAN_INTERVAL_MS = 250;
+    public static final long MIN_WALKOVER_INTERVAL_MS = 100;
+
+    private long lastWalkOverCheckMs = 0;
+
     public int getLastItemCount() {
         return lastItemCount;
     }
 
     public boolean shouldSkipScan(@Nonnull final Vector3d eyePos, @Nonnull final Vector3d lookDir, final long nowMs) {
-        if (nowMs - lastCheckTimeMs < 100
+        final long elapsed = nowMs - lastCheckTimeMs;
+        if (elapsed < MIN_SCAN_INTERVAL_MS) {
+            return true;
+        }
+        if (elapsed < STATIONARY_SCAN_INTERVAL_MS
                 && eyePos.distanceSquared(lastEyePos) < 0.0001
                 && lastLookDir.dot(lookDir) > 0.9999) {
             return true;
@@ -79,5 +89,16 @@ public class PlayerTargetSession {
         this.lastEyePos.set(eyePos);
         this.lastLookDir.set(lookDir);
         this.lastCheckTimeMs = nowMs;
+    }
+
+    public boolean shouldSkipWalkOver(final long nowMs) {
+        if (nowMs - lastWalkOverCheckMs < MIN_WALKOVER_INTERVAL_MS) {
+            return true;
+        }
+        return false;
+    }
+
+    public void updateWalkOverTime(final long nowMs) {
+        this.lastWalkOverCheckMs = nowMs;
     }
 }

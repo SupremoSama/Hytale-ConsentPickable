@@ -1,64 +1,77 @@
-Group #PickupPromptRoot {
+﻿Group #PickupPromptRoot {
   Anchor: (Left: 0, Right: 0, Top: 0, Bottom: 0);
   LayoutMode: Left;
 
   Group #PosLeft { FlexWeight: 500; }
 
   Group #Column {
-    Anchor: (Width: 300);
+    Anchor: (Width: 320);
     LayoutMode: Top;
 
-    Group #PosTop { FlexWeight: 540; }
+    Group #PosTop { FlexWeight: 560; }
 
     Group #PickupPanel {
       Anchor: (Left: 0, Right: 0);
       LayoutMode: Left;
-      Padding: (Horizontal: 12, Vertical: 8);
-      Background: #10141a(0.85);
+      Padding: (Horizontal: 0, Vertical: 0);
+      Background: #0e131c(0.92);
+      OutlineColor: #28354a(0.9);
+      OutlineSize: 1;
 
-      Group #KeyCap {
-        Anchor: (Width: 28, Height: 28, Right: 8);
-        LayoutMode: MiddleCenter;
-        Background: #222834;
-        OutlineColor: #ffd75e;
-        OutlineSize: 1;
-
-        Label #ActionKey {
-          Style: (FontSize: 13, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-          Text: "F";
-        }
+      Group #LeftAccent {
+        Anchor: (Width: 3, Top: 0, Bottom: 0);
+        Background: #e5a83b;
       }
 
-      Group #InfoCol {
+      Group #ContentRow {
         FlexWeight: 1;
-        LayoutMode: Top;
+        LayoutMode: Left;
+        Padding: (Horizontal: 12, Vertical: 8);
 
-        Label #ActionTitle {
-          Anchor: (Left: 0, Right: 0, Height: 14);
-          Style: (FontSize: 11, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
-          Text: "PICK UP";
+        Group #KeyCap {
+          Anchor: (Width: 32, Height: 32, Right: 10);
+          LayoutMode: MiddleCenter;
+          Background: #18202c(0.95);
+          OutlineColor: #e5a83b(0.8);
+          OutlineSize: 1;
+
+          Label #ActionKey {
+            Style: (FontSize: 13, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+            Text: "F";
+          }
         }
 
-        Group #ItemRow {
-          Anchor: (Left: 0, Right: 0, Height: 20);
-          LayoutMode: Left;
+        Group #InfoCol {
+          FlexWeight: 1;
+          LayoutMode: Top;
 
-          Label #ItemName {
-            FlexWeight: 1;
-            Style: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center);
-            Text: "";
+          Label #ActionTitle {
+            Anchor: (Left: 0, Right: 0, Height: 14);
+            Style: (FontSize: 11, TextColor: #e5a83b, RenderBold: true, RenderUppercase: true, LetterSpacing: 1, VerticalAlignment: Center);
+            Text: "PICK UP";
           }
 
-          Label #ItemCount {
-            Anchor: (Width: 40, Height: 20);
-            Style: (FontSize: 14, TextColor: #ffd75e, RenderBold: true, HorizontalAlignment: End, VerticalAlignment: Center);
-            Text: "";
+          Group #ItemRow {
+            Anchor: (Left: 0, Right: 0, Height: 20);
+            LayoutMode: Left;
+
+            Label #ItemName {
+              FlexWeight: 1;
+              Style: (FontSize: 15, TextColor: #f4f6fa, RenderBold: true, VerticalAlignment: Center);
+              Text: "";
+            }
+
+            Label #ItemCount {
+              Anchor: (Width: 44, Height: 20);
+              Style: (FontSize: 14, TextColor: #ffd75e, RenderBold: true, HorizontalAlignment: End, VerticalAlignment: Center);
+              Text: "";
+            }
           }
         }
       }
     }
 
-    Group #PosBottom { FlexWeight: 460; }
+    Group #PosBottom { FlexWeight: 440; }
   }
 
   Group #PosRight { FlexWeight: 500; }

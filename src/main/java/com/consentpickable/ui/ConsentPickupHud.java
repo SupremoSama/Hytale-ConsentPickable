@@ -6,84 +6,18 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Custom HUD layer that renders the interactive "[Use] PICK UP <Item Name> xCount" prompt
- * directly under the player's crosshair.
+ * directly under the player's crosshair, styled to match the native Hytale game UI.
  */
 public final class ConsentPickupHud extends CustomUIHud {
 
     @Nonnull
     public static final String KEY = "consent_pickup";
-
     @Nonnull
-    private static final String DOCUMENT = """
-        Group #PickupPromptRoot {
-          Anchor: (Left: 0, Right: 0, Top: 0, Bottom: 0);
-          LayoutMode: Left;
-
-          Group #PosLeft { FlexWeight: 500; }
-
-          Group #Column {
-            Anchor: (Width: 300);
-            LayoutMode: Top;
-
-            Group #PosTop { FlexWeight: 540; }
-
-            Group #PickupPanel {
-              Anchor: (Left: 0, Right: 0);
-              LayoutMode: Left;
-              Padding: (Horizontal: 12, Vertical: 8);
-              Background: #10141a(0.85);
-
-              Group #KeyCap {
-                Anchor: (Width: 28, Height: 28, Right: 8);
-                LayoutMode: MiddleCenter;
-                Background: #222834;
-                OutlineColor: #ffd75e;
-                OutlineSize: 1;
-
-                Label #ActionKey {
-                  Style: (FontSize: 13, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                  Text: "F";
-                }
-              }
-
-              Group #InfoCol {
-                FlexWeight: 1;
-                LayoutMode: Top;
-
-                Label #ActionTitle {
-                  Anchor: (Left: 0, Right: 0, Height: 14);
-                  Style: (FontSize: 11, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
-                  Text: "PICK UP";
-                }
-
-                Group #ItemRow {
-                  Anchor: (Left: 0, Right: 0, Height: 20);
-                  LayoutMode: Left;
-
-                  Label #ItemName {
-                    FlexWeight: 1;
-                    Style: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center);
-                    Text: "";
-                  }
-
-                  Label #ItemCount {
-                    Anchor: (Width: 40, Height: 20);
-                    Style: (FontSize: 14, TextColor: #ffd75e, RenderBold: true, HorizontalAlignment: End, VerticalAlignment: Center);
-                    Text: "";
-                  }
-                }
-              }
-            }
-
-            Group #PosBottom { FlexWeight: 460; }
-          }
-
-          Group #PosRight { FlexWeight: 500; }
-        }
-        """;
+    public static final String UI_PATH = "Hud/ConsentPickable/PickupPrompt.ui";
 
     @Nonnull
     private Message currentDisplayName;
@@ -105,9 +39,26 @@ public final class ConsentPickupHud extends CustomUIHud {
         this(playerRef, Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
     }
 
+    @Nonnull
+    public static String getLocalizedPickupText(@Nullable final String language) {
+        if (language != null) {
+            final String lower = language.toLowerCase();
+            if (lower.startsWith("pt")) return "PEGAR";
+            if (lower.startsWith("es")) return "RECOGER";
+            if (lower.startsWith("fr")) return "RAMASSER";
+            if (lower.startsWith("de")) return "AUFHEBEN";
+            if (lower.startsWith("ru")) return "ПОДОБРАТЬ";
+            if (lower.startsWith("zh")) return "拾取";
+        }
+        return "PICK UP";
+    }
+
     @Override
     protected void build(@Nonnull final UICommandBuilder commandBuilder) {
-        commandBuilder.appendInline(null, DOCUMENT);
+        commandBuilder.append(UI_PATH);
+        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage());
+        commandBuilder.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
+        commandBuilder.set("#ActionTitle.Text", localizedAction);
         commandBuilder.set("#ItemName.TextSpans", currentDisplayName);
         commandBuilder.set("#ItemCount.Text", currentItemCount > 1 ? ("x" + currentItemCount) : "");
     }
@@ -125,6 +76,9 @@ public final class ConsentPickupHud extends CustomUIHud {
         this.currentItemCount = itemCount;
 
         final var cmd = new UICommandBuilder();
+        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage());
+        cmd.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
+        cmd.set("#ActionTitle.Text", localizedAction);
         cmd.set("#ItemName.TextSpans", safeMsg);
         cmd.set("#ItemCount.Text", itemCount > 1 ? ("x" + itemCount) : "");
         update(false, cmd);
