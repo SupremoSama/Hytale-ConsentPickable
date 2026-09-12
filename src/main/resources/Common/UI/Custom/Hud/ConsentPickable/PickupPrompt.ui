@@ -1,14 +1,14 @@
 Group #PickupPromptRoot {
   Anchor: (Left: 0, Right: 0, Top: 0, Bottom: 0);
-  LayoutMode: Right;
+  LayoutMode: Left;
 
-  Group #PosRight { FlexWeight: 578; }
+  Group #PosLeft { FlexWeight: 260; }
 
   Group #Column {
-    Anchor: (Width: 300);
+    Anchor: (Width: 320);
     LayoutMode: Top;
 
-    Group #PosTop { FlexWeight: 535; }
+    Group #PosTop { FlexWeight: 500; }
 
     Group #PickupPanel {
       Anchor: (Left: 0, Right: 0);
@@ -33,10 +33,22 @@ Group #PickupPromptRoot {
         FlexWeight: 1;
         LayoutMode: Top;
 
-        Label #ActionTitle {
+        Group #HeaderRow {
           Anchor: (Left: 0, Right: 0, Height: 14);
-          Style: (FontSize: 11, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
-          Text: "PICK UP";
+          LayoutMode: Left;
+
+          Label #ActionTitle {
+            FlexWeight: 1;
+            Style: (FontSize: 11, TextColor: #ffd75e, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
+            Text: "PICK UP";
+          }
+
+          Label #ItemRarity {
+            Anchor: (Width: 100, Height: 14);
+            Style: (FontSize: 11, TextColor: #9ec8ff, RenderBold: true, HorizontalAlignment: End, VerticalAlignment: Center);
+            Text: "";
+            Visible: false;
+          }
         }
 
         Group #ItemRow {
@@ -58,9 +70,9 @@ Group #PickupPromptRoot {
       }
     }
 
-    Group #PosBottom { FlexWeight: 465; }
+    Group #PosBottom { FlexWeight: 500; }
   }
 
-  Group #PosLeft { FlexWeight: 422; }
+  Group #PosRight { FlexWeight: 740; }
 }
 

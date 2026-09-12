@@ -24,21 +24,43 @@ public final class ConsentPickupHud extends CustomUIHud {
     @Nonnull
     private String currentItemName;
     private int currentItemCount;
+    @Nullable
+    private String currentRarityKey;
+    @Nullable
+    private String currentRarityText;
+    @Nonnull
+    private String currentRarityColor = "#ffffff";
+    private boolean currentRarityVisible = false;
     private boolean isVisible = false;
 
     public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
                             @Nonnull final Message displayName,
                             @Nonnull final String itemName,
-                            final int itemCount) {
+                            final int itemCount,
+                            @Nullable final String rarityKey,
+                            @Nullable final String rarityText,
+                            @Nullable final String rarityColor,
+                            final boolean rarityVisible) {
         super(playerRef, KEY, 10);
         this.currentDisplayName = displayName != null ? displayName : Message.raw(itemName != null ? itemName : "Item");
         this.currentItemName = itemName != null ? itemName : "Item";
         this.currentItemCount = itemCount;
+        this.currentRarityKey = rarityKey;
+        this.currentRarityText = rarityText;
+        this.currentRarityColor = rarityColor != null && !rarityColor.isEmpty() ? rarityColor : "#ffffff";
+        this.currentRarityVisible = rarityVisible;
         this.isVisible = true;
     }
 
+    public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
+                            @Nonnull final Message displayName,
+                            @Nonnull final String itemName,
+                            final int itemCount) {
+        this(playerRef, displayName, itemName, itemCount, null, null, "#ffffff", false);
+    }
+
     public ConsentPickupHud(@Nonnull final PlayerRef playerRef, @Nonnull final String itemName, final int itemCount) {
-        this(playerRef, Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
+        this(playerRef, Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount, null, null, "#ffffff", false);
     }
 
     public boolean isPromptVisible() {
@@ -59,6 +81,58 @@ public final class ConsentPickupHud extends CustomUIHud {
         return "PICK UP";
     }
 
+    @Nonnull
+    public static String getLocalizedQualityText(@Nullable final String qualityId, @Nullable final String language) {
+        if (qualityId == null || qualityId.isEmpty()) return "";
+        final String q = qualityId.toLowerCase();
+        final String lang = language != null ? language.toLowerCase() : "en";
+        final boolean isPt = lang.startsWith("pt");
+        final boolean isEs = lang.startsWith("es");
+        final boolean isFr = lang.startsWith("fr");
+        final boolean isDe = lang.startsWith("de");
+
+        if (q.contains("common") && !q.contains("uncommon")) {
+            if (isPt || isEs) return "Comum";
+            if (isFr) return "Commun";
+            if (isDe) return "Gewöhnlich";
+            return "Common";
+        }
+        if (q.contains("uncommon")) {
+            if (isPt) return "Incomum";
+            if (isEs) return "Poco común";
+            if (isFr) return "Peu commun";
+            if (isDe) return "Ungewöhnlich";
+            return "Uncommon";
+        }
+        if (q.contains("rare")) {
+            if (isPt || isEs) return "Raro";
+            if (isFr) return "Rare";
+            if (isDe) return "Selten";
+            return "Rare";
+        }
+        if (q.contains("epic")) {
+            if (isPt || isEs) return "Épico";
+            if (isFr) return "Épique";
+            if (isDe) return "Episch";
+            return "Epic";
+        }
+        if (q.contains("legendary")) {
+            if (isPt) return "Lendário";
+            if (isEs) return "Legendario";
+            if (isFr) return "Légendaire";
+            if (isDe) return "Legendär";
+            return "Legendary";
+        }
+        if (q.contains("junk")) {
+            if (isPt) return "Lixo";
+            if (isEs) return "Basura";
+            if (isFr) return "Rebut";
+            if (isDe) return "Schrott";
+            return "Junk";
+        }
+        return qualityId;
+    }
+
     @Override
     protected void build(@Nonnull final UICommandBuilder commandBuilder) {
         commandBuilder.append(UI_PATH);
@@ -66,23 +140,48 @@ public final class ConsentPickupHud extends CustomUIHud {
         commandBuilder.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
         commandBuilder.set("#ActionTitle.Text", localizedAction);
         commandBuilder.set("#ItemName.TextSpans", currentDisplayName);
+        commandBuilder.set("#ItemName.Style.TextColor", currentRarityColor);
         commandBuilder.set("#ItemCount.Text", currentItemCount > 1 ? ("x" + currentItemCount) : "");
+        commandBuilder.set("#ItemRarity.Visible", currentRarityVisible);
+        if (currentRarityVisible) {
+            if (currentRarityKey != null && !currentRarityKey.isEmpty()) {
+                commandBuilder.set("#ItemRarity.TextSpans", Message.translation(currentRarityKey));
+            }
+            commandBuilder.set("#ItemRarity.Text", currentRarityText != null ? currentRarityText : "");
+            commandBuilder.set("#ItemRarity.Style.TextColor", currentRarityColor);
+        }
         commandBuilder.set("#PickupPromptRoot.Visible", isVisible);
     }
 
     public void showPrompt(@Nonnull final Message displayName,
                            @Nonnull final String itemName,
-                           final int itemCount) {
+                           final int itemCount,
+                           @Nullable final String rarityKey,
+                           @Nullable final String rarityText,
+                           @Nullable final String rarityColor,
+                           final boolean rarityVisible) {
         final Message safeMsg = displayName != null ? displayName : Message.raw(itemName != null ? itemName : "Item");
         final String safeName = itemName != null ? itemName : "Item";
+        final String safeColor = rarityColor != null && !rarityColor.isEmpty() ? rarityColor : "#ffffff";
+        final String safeRarityKey = rarityKey != null ? rarityKey : "";
+        final String safeRarityText = rarityText != null ? rarityText : "";
 
-        if (this.isVisible && this.currentItemName.equals(safeName) && this.currentItemCount == itemCount) {
+        if (this.isVisible
+                && this.currentItemName.equals(safeName)
+                && this.currentItemCount == itemCount
+                && this.currentRarityVisible == rarityVisible
+                && this.currentRarityColor.equals(safeColor)
+                && (this.currentRarityKey != null ? this.currentRarityKey : "").equals(safeRarityKey)) {
             return;
         }
 
         this.currentDisplayName = safeMsg;
         this.currentItemName = safeName;
         this.currentItemCount = itemCount;
+        this.currentRarityKey = rarityKey;
+        this.currentRarityText = rarityText;
+        this.currentRarityColor = safeColor;
+        this.currentRarityVisible = rarityVisible;
 
         final var cmd = new UICommandBuilder();
         if (!this.isVisible) {
@@ -93,12 +192,27 @@ public final class ConsentPickupHud extends CustomUIHud {
         cmd.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
         cmd.set("#ActionTitle.Text", localizedAction);
         cmd.set("#ItemName.TextSpans", safeMsg);
+        cmd.set("#ItemName.Style.TextColor", safeColor);
         cmd.set("#ItemCount.Text", itemCount > 1 ? ("x" + itemCount) : "");
+        cmd.set("#ItemRarity.Visible", rarityVisible);
+        if (rarityVisible) {
+            if (rarityKey != null && !rarityKey.isEmpty()) {
+                cmd.set("#ItemRarity.TextSpans", Message.translation(rarityKey));
+            }
+            cmd.set("#ItemRarity.Text", safeRarityText);
+            cmd.set("#ItemRarity.Style.TextColor", safeColor);
+        }
         update(false, cmd);
     }
 
+    public void showPrompt(@Nonnull final Message displayName,
+                           @Nonnull final String itemName,
+                           final int itemCount) {
+        showPrompt(displayName, itemName, itemCount, null, null, "#ffffff", false);
+    }
+
     public void showPrompt(@Nonnull final String itemName, final int itemCount) {
-        showPrompt(Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
+        showPrompt(Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount, null, null, "#ffffff", false);
     }
 
     public void hidePrompt() {
@@ -108,6 +222,10 @@ public final class ConsentPickupHud extends CustomUIHud {
         this.isVisible = false;
         this.currentItemName = "";
         this.currentItemCount = 0;
+        this.currentRarityKey = null;
+        this.currentRarityText = null;
+        this.currentRarityColor = "#ffffff";
+        this.currentRarityVisible = false;
 
         final var cmd = new UICommandBuilder();
         cmd.set("#PickupPromptRoot.Visible", false);

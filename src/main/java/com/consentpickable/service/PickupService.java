@@ -4,8 +4,10 @@ import com.consentpickable.interaction.ConsentPickupUseInteraction;
 import com.consentpickable.session.PlayerTargetSession;
 import com.consentpickable.ui.ConsentPickupHud;
 import com.hypixel.hytale.component.*;
+import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.asset.type.item.config.ItemQuality;
 import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
@@ -424,11 +426,30 @@ public final class PickupService {
         final String itemName = getSafeItemName(itemStack);
         final int itemCount = itemStack.getQuantity();
 
+        String rarityKey = null;
+        String rarityText = null;
+        String rarityColor = "#ffffff";
+        boolean rarityVisible = false;
+
+        if (itemStack.getItem() != null) {
+            final int qualityIndex = itemStack.getItem().getQualityIndex();
+            final ItemQuality quality = ItemQuality.getAssetMap().getAsset(qualityIndex);
+            if (quality != null) {
+                rarityKey = quality.getLocalizationKey();
+                rarityText = ConsentPickupHud.getLocalizedQualityText(quality.getId(), playerRef.getLanguage());
+                final Color textColor = quality.getTextColor();
+                if (textColor != null) {
+                    rarityColor = String.format("#%02x%02x%02x", textColor.red & 0xFF, textColor.green & 0xFF, textColor.blue & 0xFF);
+                }
+                rarityVisible = quality.isVisibleQualityLabel() && !"Default".equalsIgnoreCase(quality.getId());
+            }
+        }
+
         final CustomUIHud existing = player.getHudManager().getCustomHud(ConsentPickupHud.KEY);
         if (existing instanceof ConsentPickupHud consentHud) {
-            consentHud.showPrompt(displayName, itemName, itemCount);
+            consentHud.showPrompt(displayName, itemName, itemCount, rarityKey, rarityText, rarityColor, rarityVisible);
         } else {
-            final ConsentPickupHud newHud = new ConsentPickupHud(playerRef, displayName, itemName, itemCount);
+            final ConsentPickupHud newHud = new ConsentPickupHud(playerRef, displayName, itemName, itemCount, rarityKey, rarityText, rarityColor, rarityVisible);
             player.getHudManager().addCustomHud(playerRef, newHud);
         }
     }
