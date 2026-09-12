@@ -13,8 +13,10 @@ import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer;
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction;
+import com.hypixel.hytale.server.core.modules.entity.DespawnComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
+import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.joml.Vector3d;
@@ -245,7 +247,7 @@ public final class PickupService {
             return 0;
         }
 
-        if (!itemComponent.pollPickupDelay(dt)) {
+        if (!itemComponent.canPickUp()) {
             return 0;
         }
 
@@ -265,7 +267,7 @@ public final class PickupService {
         }
 
         final Vector3d itemPos = itemTransform.getPosition();
-        if (itemPos.distanceSquared(playerTransform.getPosition()) > maxDistSq) {
+        if (maxDistSq > 0 && itemPos.distanceSquared(playerTransform.getPosition()) > maxDistSq) {
             return 0;
         }
 
@@ -333,6 +335,15 @@ public final class PickupService {
         } else {
             final ItemStack newGroundStack = groundStack.withQuantity(remainingOnGround);
             itemComponent.setItemStack(newGroundStack);
+
+            if (accessor instanceof CommandBuffer<EntityStore> cb) {
+                final var despawnComponent = cb.getComponent(itemRef, DespawnComponent.getComponentType());
+                if (despawnComponent != null) {
+                    final var timeResource = cb.getResource(TimeResource.getResourceType());
+                    final float newLifetime = itemComponent.computeLifetimeSeconds(cb);
+                    DespawnComponent.trySetDespawn(cb, timeResource, itemRef, despawnComponent, newLifetime);
+                }
+            }
 
             final Holder<EntityStore> pickupHolder = ItemComponent.generatePickedUpItem(portion, itemPos, accessor, playerEntityRef);
             Player.notifyPickupItem(playerEntityRef, portion, itemPos, accessor);
