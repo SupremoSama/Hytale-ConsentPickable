@@ -2,7 +2,7 @@ Group #PickupPromptRoot {
   Anchor: (Left: 0, Right: 0, Top: 0, Bottom: 0);
   LayoutMode: Left;
 
-  Group #PosLeft { FlexWeight: 500; }
+  Group #PosLeft { FlexWeight: 650; }
 
   Group #Column {
     Anchor: (Width: 320);
@@ -14,7 +14,7 @@ Group #PickupPromptRoot {
       Anchor: (Left: 0, Right: 0);
       LayoutMode: Left;
       Padding: (Horizontal: 12, Vertical: 8);
-      Background: #10141a(0.85);
+      Background: #10141a(0.6);
 
       Group #KeyCap {
         Anchor: (Width: 28, Height: 28, Right: 10);
@@ -73,6 +73,6 @@ Group #PickupPromptRoot {
     Group #PosBottom { FlexWeight: 500; }
   }
 
-  Group #PosRight { FlexWeight: 500; }
+  Group #PosRight { FlexWeight: 350; }
 }
 
