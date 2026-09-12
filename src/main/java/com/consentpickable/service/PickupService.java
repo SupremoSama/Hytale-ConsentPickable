@@ -398,7 +398,7 @@ public final class PickupService {
     }
 
     /**
-     * Shows or updates the HUD prompt for the player.
+     * Shows or updates the HUD prompt for the player. Reuses existing HUD instance without recreation.
      */
     public void showPrompt(@Nonnull final Ref<EntityStore> playerEntityRef,
                            @Nonnull final PlayerRef playerRef,
@@ -415,7 +415,7 @@ public final class PickupService {
 
         final CustomUIHud existing = player.getHudManager().getCustomHud(ConsentPickupHud.KEY);
         if (existing instanceof ConsentPickupHud consentHud) {
-            consentHud.updateContent(displayName, itemName, itemCount);
+            consentHud.showPrompt(displayName, itemName, itemCount);
         } else {
             final ConsentPickupHud newHud = new ConsentPickupHud(playerRef, displayName, itemName, itemCount);
             player.getHudManager().addCustomHud(playerRef, newHud);
@@ -423,7 +423,7 @@ public final class PickupService {
     }
 
     /**
-     * Hides the HUD prompt from the player.
+     * Hides the HUD prompt from the player without destroying or re-instantiating the HUD layer.
      */
     public void hidePrompt(@Nonnull final Ref<EntityStore> playerEntityRef,
                            @Nonnull final PlayerRef playerRef,
@@ -432,6 +432,9 @@ public final class PickupService {
         if (player == null) {
             return;
         }
-        player.getHudManager().removeCustomHud(playerRef, ConsentPickupHud.KEY);
+        final CustomUIHud existing = player.getHudManager().getCustomHud(ConsentPickupHud.KEY);
+        if (existing instanceof ConsentPickupHud consentHud) {
+            consentHud.hidePrompt();
+        }
     }
 }

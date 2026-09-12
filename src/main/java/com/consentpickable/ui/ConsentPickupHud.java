@@ -24,6 +24,7 @@ public final class ConsentPickupHud extends CustomUIHud {
     @Nonnull
     private String currentItemName;
     private int currentItemCount;
+    private boolean isVisible = false;
 
     public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
                             @Nonnull final Message displayName,
@@ -33,10 +34,15 @@ public final class ConsentPickupHud extends CustomUIHud {
         this.currentDisplayName = displayName != null ? displayName : Message.raw(itemName != null ? itemName : "Item");
         this.currentItemName = itemName != null ? itemName : "Item";
         this.currentItemCount = itemCount;
+        this.isVisible = true;
     }
 
     public ConsentPickupHud(@Nonnull final PlayerRef playerRef, @Nonnull final String itemName, final int itemCount) {
         this(playerRef, Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
+    }
+
+    public boolean isPromptVisible() {
+        return isVisible;
     }
 
     @Nonnull
@@ -61,21 +67,28 @@ public final class ConsentPickupHud extends CustomUIHud {
         commandBuilder.set("#ActionTitle.Text", localizedAction);
         commandBuilder.set("#ItemName.TextSpans", currentDisplayName);
         commandBuilder.set("#ItemCount.Text", currentItemCount > 1 ? ("x" + currentItemCount) : "");
+        commandBuilder.set("#PickupPromptRoot.Visible", isVisible);
     }
 
-    public void updateContent(@Nonnull final Message displayName,
-                              @Nonnull final String itemName,
-                              final int itemCount) {
+    public void showPrompt(@Nonnull final Message displayName,
+                           @Nonnull final String itemName,
+                           final int itemCount) {
         final Message safeMsg = displayName != null ? displayName : Message.raw(itemName != null ? itemName : "Item");
         final String safeName = itemName != null ? itemName : "Item";
-        if (this.currentItemName.equals(safeName) && this.currentItemCount == itemCount) {
+
+        if (this.isVisible && this.currentItemName.equals(safeName) && this.currentItemCount == itemCount) {
             return;
         }
+
         this.currentDisplayName = safeMsg;
         this.currentItemName = safeName;
         this.currentItemCount = itemCount;
 
         final var cmd = new UICommandBuilder();
+        if (!this.isVisible) {
+            this.isVisible = true;
+            cmd.set("#PickupPromptRoot.Visible", true);
+        }
         final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage());
         cmd.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
         cmd.set("#ActionTitle.Text", localizedAction);
@@ -84,7 +97,30 @@ public final class ConsentPickupHud extends CustomUIHud {
         update(false, cmd);
     }
 
+    public void showPrompt(@Nonnull final String itemName, final int itemCount) {
+        showPrompt(Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
+    }
+
+    public void hidePrompt() {
+        if (!this.isVisible) {
+            return;
+        }
+        this.isVisible = false;
+        this.currentItemName = "";
+        this.currentItemCount = 0;
+
+        final var cmd = new UICommandBuilder();
+        cmd.set("#PickupPromptRoot.Visible", false);
+        update(false, cmd);
+    }
+
+    public void updateContent(@Nonnull final Message displayName,
+                              @Nonnull final String itemName,
+                              final int itemCount) {
+        showPrompt(displayName, itemName, itemCount);
+    }
+
     public void updateContent(@Nonnull final String itemName, final int itemCount) {
-        updateContent(Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
+        showPrompt(Message.raw(itemName != null ? itemName : "Item"), itemName, itemCount);
     }
 }

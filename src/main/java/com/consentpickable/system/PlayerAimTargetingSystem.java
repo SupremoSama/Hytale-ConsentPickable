@@ -96,16 +96,6 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 continue;
             }
 
-            final ItemComponent itemComp = store.getComponent(candidateRef, ItemComponent.getComponentType());
-            if (itemComp == null) {
-                continue;
-            }
-
-            final ItemStack stack = itemComp.getItemStack();
-            if (stack == null || stack.isEmpty()) {
-                continue;
-            }
-
             final TransformComponent itemTransform = store.getComponent(candidateRef, TransformComponent.getComponentType());
             if (itemTransform == null) {
                 continue;
@@ -124,6 +114,9 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
 
             final double distSq = dx * dx + dy * dy + dz * dz;
             final double perpDistSq = distSq - (t * t);
+            if (perpDistSq >= bestPerpDistSq) {
+                continue;
+            }
 
             // Generous crosshair tolerance cone scaled slightly with distance
             final double allowedRadius = 0.35 + (0.04 * t);
@@ -131,12 +124,21 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 continue;
             }
 
-            if (perpDistSq < bestPerpDistSq) {
-                bestPerpDistSq = perpDistSq;
-                bestItemRef = candidateRef;
-                bestItemStack = stack;
-                bestT = t;
+            // Only inspect ItemComponent for items that qualify as a better aim candidate
+            final ItemComponent itemComp = store.getComponent(candidateRef, ItemComponent.getComponentType());
+            if (itemComp == null) {
+                continue;
             }
+
+            final ItemStack stack = itemComp.getItemStack();
+            if (stack == null || stack.isEmpty()) {
+                continue;
+            }
+
+            bestPerpDistSq = perpDistSq;
+            bestItemRef = candidateRef;
+            bestItemStack = stack;
+            bestT = t;
         }
 
         // Line-of-sight occlusion verification
@@ -156,8 +158,12 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
 
         // Target transition & HUD updates
         if (bestItemRef != null && bestItemStack != null) {
+            session.recordTargetSeen(nowMs);
             final Ref<EntityStore> currentTarget = session.getTargetedItemRef();
-            if (!bestItemRef.equals(currentTarget) || session.getLastItemCount() != bestItemStack.getQuantity()) {
+            final boolean targetChanged = !bestItemRef.equals(currentTarget);
+            final boolean countChanged = session.getLastItemCount() != bestItemStack.getQuantity();
+
+            if (targetChanged || countChanged) {
                 final String name = PickupService.getSafeItemName(bestItemStack);
                 session.setTarget(bestItemRef, name, bestItemStack.getQuantity());
                 PickupService.getInstance().showPrompt(playerEntityRef, playerRef, bestItemStack, store);
@@ -173,6 +179,11 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 interactions.setInteractionId(InteractionType.Use, ConsentPickupUseInteraction.ROOT_ID);
             }
         } else {
+            // Apply debounce so slight aim jitter over items doesn't rapidly cycle target/HUD/interactions
+            if (session.hasTarget() && session.isTargetDebounceActive(nowMs)) {
+                return;
+            }
+
             if (session.hasTarget()) {
                 session.clearTarget();
                 PickupService.getInstance().hidePrompt(playerEntityRef, playerRef, store);

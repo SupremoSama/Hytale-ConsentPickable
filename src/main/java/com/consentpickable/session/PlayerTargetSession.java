@@ -55,6 +55,18 @@ public class PlayerTargetSession {
         this.targetedItemRef = null;
         this.lastItemName = null;
         this.lastItemCount = 0;
+        this.lastTargetSeenMs = 0;
+    }
+
+    public static final long TARGET_LOSS_DEBOUNCE_MS = 120;
+    private long lastTargetSeenMs = 0;
+
+    public void recordTargetSeen(final long nowMs) {
+        this.lastTargetSeenMs = nowMs;
+    }
+
+    public boolean isTargetDebounceActive(final long nowMs) {
+        return (nowMs - lastTargetSeenMs) < TARGET_LOSS_DEBOUNCE_MS;
     }
 
     @Nullable
