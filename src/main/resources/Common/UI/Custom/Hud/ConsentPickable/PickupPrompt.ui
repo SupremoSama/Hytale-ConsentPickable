@@ -1,15 +1,17 @@
 Group #PickupPromptRoot {
   Anchor: (Left: 0, Right: 0, Top: 0, Bottom: 0);
-  LayoutMode: Top;
+  LayoutMode: Right;
 
-  Group #PosTop { FlexWeight: 535; }
+  Group #PosRight { FlexWeight: 578; }
 
-  Group #CenterRow {
-    Anchor: (Left: 0, Right: 0);
-    LayoutMode: Center;
+  Group #Column {
+    Anchor: (Width: 300);
+    LayoutMode: Top;
+
+    Group #PosTop { FlexWeight: 535; }
 
     Group #PickupPanel {
-      Anchor: (Width: 300);
+      Anchor: (Left: 0, Right: 0);
       LayoutMode: Left;
       Padding: (Horizontal: 12, Vertical: 8);
       Background: #10141a(0.85);
@@ -55,7 +57,10 @@ Group #PickupPromptRoot {
         }
       }
     }
+
+    Group #PosBottom { FlexWeight: 465; }
   }
 
-  Group #PosBottom { FlexWeight: 465; }
+  Group #PosLeft { FlexWeight: 422; }
 }
+
