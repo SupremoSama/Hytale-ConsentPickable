@@ -56,14 +56,14 @@ public final class ConsentPickupHud extends CustomUIHud {
     public static String getLocalizedPickupText(@Nullable final String language) {
         if (language != null) {
             final String lower = language.toLowerCase();
-            if (lower.startsWith("pt")) return "PEGAR  •  [SEGURE 1s] TROCAR";
-            if (lower.startsWith("es")) return "RECOGER  •  [MANTÉN 1s] CAMBIAR";
-            if (lower.startsWith("fr")) return "RAMASSER  •  [MAINTENIR 1s] ÉCHANGER";
-            if (lower.startsWith("de")) return "AUFHEBEN  •  [HALTEN 1s] TAUSCHEN";
-            if (lower.startsWith("ru")) return "ПОДОБРАТЬ  •  [1s] ОБМЕНЯТЬ";
-            if (lower.startsWith("zh")) return "拾取  •  [长按1秒] 替换";
+            if (lower.startsWith("pt")) return "PEGAR  •  [SEGURE 0.5s] TROCAR";
+            if (lower.startsWith("es")) return "RECOGER  •  [MANTÉN 0.5s] CAMBIAR";
+            if (lower.startsWith("fr")) return "RAMASSER  •  [MAINTENIR 0.5s] ÉCHANGER";
+            if (lower.startsWith("de")) return "AUFHEBEN  •  [HALTEN 0.5s] TAUSCHEN";
+            if (lower.startsWith("ru")) return "ПОДОБРАТЬ  •  [0.5s] ОБМЕНЯТЬ";
+            if (lower.startsWith("zh")) return "拾取  •  [长按0.5秒] 替换";
         }
-        return "PICK UP  •  [HOLD 1s] SWAP";
+        return "PICK UP  •  [HOLD 0.5s] SWAP";
     }
 
     @Nonnull

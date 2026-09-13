@@ -4,6 +4,6 @@
   "DisplayProgress": true,
   "Next": {
     "0": "ConsentPickupUse",
-    "1": "ConsentPickupSwap"
+    "0.5": "ConsentPickupSwap"
   }
 }

@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 
 /**
- * Custom SimpleInstantInteraction triggered when the player completes a 1-second hold.
+ * Custom SimpleInstantInteraction triggered when the player completes a 0.5-second hold.
  * Swaps the player's held item in their active hotbar slot with the targeted ground item.
  * The previously held item is safely dropped onto the ground (never deleted).
  */

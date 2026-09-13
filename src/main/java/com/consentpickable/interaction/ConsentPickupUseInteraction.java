@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Custom SimpleInstantInteraction inserted into the unarmed Use chain in Empty.json.
@@ -45,7 +46,7 @@ public final class ConsentPickupUseInteraction extends SimpleInstantInteraction 
     }
 
     @Override
-    public WaitForDataFrom getWaitForDataFrom() {
+    public @NonNull WaitForDataFrom getWaitForDataFrom() {
         return WaitForDataFrom.Server;
     }
 
@@ -60,7 +61,7 @@ public final class ConsentPickupUseInteraction extends SimpleInstantInteraction 
         }
 
         final Ref<EntityStore> instigatorRef = context.getEntity();
-        if (instigatorRef == null || !instigatorRef.isValid()) {
+        if (!instigatorRef.isValid()) {
             context.getState().state = InteractionState.Failed;
             return;
         }

@@ -44,7 +44,7 @@ public class ConsentPickablePlugin extends JavaPlugin {
                 com.consentpickable.interaction.ConsentPickupSwapInteraction.CODEC
         );
 
-        // Pre-load Interaction and RootInteraction assets into the engine
+        // Preload Interaction and RootInteraction assets into the engine
         Interaction.getAssetStore().loadAssets(
                 com.hypixel.hytale.assetstore.map.DefaultAssetMap.DEFAULT_PACK_KEY,
                 java.util.List.of(
@@ -66,11 +66,7 @@ public class ConsentPickablePlugin extends JavaPlugin {
 
 
         // Register disconnect listener to clean up player sessions
-        getEventRegistry().register(PlayerDisconnectEvent.class, event -> {
-            if (event.getPlayerRef() != null) {
-                PickupService.getInstance().removeSession(event.getPlayerRef().getUuid());
-            }
-        });
+        getEventRegistry().register(PlayerDisconnectEvent.class, event -> PickupService.getInstance().removeSession(event.getPlayerRef().getUuid()));
 
         LOGGER.atInfo().log("ConsentPickable initialized successfully!");
     }
