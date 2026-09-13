@@ -55,7 +55,7 @@ public final class ConsentPickupHud extends CustomUIHud {
 
     @Nonnull
     public static String getLocalizedPickupText(@Nullable final String language) {
-        return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD 0.5s] SWAP");
+        return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD] SWAP");
     }
 
     @Override

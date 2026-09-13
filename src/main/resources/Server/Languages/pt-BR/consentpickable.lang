@@ -1,2 +1,2 @@
-action.pickup = PEGAR  •  [SEGURE 0.5s] TROCAR
-action.swap = SEGURE (0.5s) TROCAR
+action.pickup = PEGAR  •  [SEGURE] TROCAR
+action.swap = SEGURE TROCAR

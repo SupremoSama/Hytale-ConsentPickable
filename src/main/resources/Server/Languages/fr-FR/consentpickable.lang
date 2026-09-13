@@ -1,2 +1,2 @@
-action.pickup = RAMASSER  •  [MAINTENIR 0.5s] ÉCHANGER
-action.swap = MAINTENIR (0.5s) ÉCHANGER
+action.pickup = RAMASSER  •  [MAINTENIR] ÉCHANGER
+action.swap = MAINTENIR ÉCHANGER

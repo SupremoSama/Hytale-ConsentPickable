@@ -1,2 +1,2 @@
-action.pickup = RECOGER  •  [MANTÉN 0.5s] CAMBIAR
-action.swap = MANTÉN (0.5s) CAMBIAR
+action.pickup = RECOGER  •  [MANTÉN] CAMBIAR
+action.swap = MANTÉN CAMBIAR

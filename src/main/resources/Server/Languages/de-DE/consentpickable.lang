@@ -1,2 +1,2 @@
-action.pickup = AUFHEBEN  •  [HALTEN 0.5s] TAUSCHEN
-action.swap = HALTEN (0.5s) TAUSCHEN
+action.pickup = AUFHEBEN  •  [HALTEN] TAUSCHEN
+action.swap = HALTEN TAUSCHEN
