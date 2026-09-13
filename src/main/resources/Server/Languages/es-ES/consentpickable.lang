@@ -1,3 +1,4 @@
-﻿action.pickup = RECOGER
+action.pickup = RECOGER
 pickup = RECOGER
-consentpickable.action.pickup = RECOGER
+consentpickable.action.pickup = RECOGER  •  [MANTÉN 3s] CAMBIAR
+consentpickable.action.swap = MANTÉN (3s) CAMBIAR

@@ -1,6 +1,6 @@
 {
   "RequireNewClick": true,
   "Interactions": [
-    "ConsentPickupUse"
+    "ConsentPickupCharge"
   ]
 }

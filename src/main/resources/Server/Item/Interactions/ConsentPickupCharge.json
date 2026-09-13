@@ -1,0 +1,9 @@
+{
+  "Type": "Charging",
+  "AllowIndefiniteHold": false,
+  "DisplayProgress": true,
+  "Next": {
+    "0": "ConsentPickupUse",
+    "3": "ConsentPickupSwap"
+  }
+}

@@ -1,3 +1,4 @@
-﻿action.pickup = PEGAR
+action.pickup = PEGAR
 pickup = PEGAR
-consentpickable.action.pickup = PEGAR
+consentpickable.action.pickup = PEGAR  •  [SEGURE 3s] TROCAR
+consentpickable.action.swap = SEGURE (3s) TROCAR

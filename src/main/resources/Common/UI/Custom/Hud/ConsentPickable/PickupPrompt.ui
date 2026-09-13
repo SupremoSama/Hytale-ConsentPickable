@@ -5,7 +5,7 @@ Group #PickupPromptRoot {
   Group #PosLeft { FlexWeight: 650; }
 
   Group #Column {
-    Anchor: (Width: 320);
+    Anchor: (Width: 350);
     LayoutMode: Top;
 
     Group #PosTop { FlexWeight: 500; }

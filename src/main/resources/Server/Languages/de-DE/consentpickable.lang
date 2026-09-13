@@ -1,3 +1,4 @@
-﻿action.pickup = AUFHEBEN
+action.pickup = AUFHEBEN
 pickup = AUFHEBEN
-consentpickable.action.pickup = AUFHEBEN
+consentpickable.action.pickup = AUFHEBEN  •  [HALTEN 3s] TAUSCHEN
+consentpickable.action.swap = HALTEN (3s) TAUSCHEN

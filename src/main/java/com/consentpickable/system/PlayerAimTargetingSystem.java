@@ -179,6 +179,31 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 interactions.setInteractionId(InteractionType.Use, ConsentPickupUseInteraction.ROOT_ID);
             }
         } else {
+            // If the player is actively holding/charging the Use interaction, do not break the hold
+            if (session.hasTarget()) {
+                final var imCompType = com.hypixel.hytale.server.core.modules.interaction.InteractionModule.get().getInteractionManagerComponent();
+                final var interactionManager = store.getComponent(playerEntityRef, imCompType);
+                if (interactionManager != null && !interactionManager.getChains().isEmpty()) {
+                    boolean isHoldingUse = false;
+                    for (final var chain : interactionManager.getChains().values()) {
+                        if (chain.getType() == InteractionType.Use && chain.getServerState() == com.hypixel.hytale.protocol.InteractionState.NotFinished) {
+                            isHoldingUse = true;
+                            break;
+                        }
+                    }
+                    if (isHoldingUse) {
+                        final Ref<EntityStore> currentTarget = session.getTargetedItemRef();
+                        if (currentTarget != null && currentTarget.isValid()) {
+                            final TransformComponent targetTransform = store.getComponent(currentTarget, TransformComponent.getComponentType());
+                            if (targetTransform != null && targetTransform.getPosition().distanceSquared(eyePos) <= (MAX_REACH_DISTANCE * MAX_REACH_DISTANCE)) {
+                                session.recordTargetSeen(nowMs);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Apply debounce so slight aim jitter over items doesn't rapidly cycle target/HUD/interactions
             if (session.hasTarget() && session.isTargetDebounceActive(nowMs)) {
                 return;

@@ -1,3 +1,4 @@
-﻿action.pickup = RAMASSER
+action.pickup = RAMASSER
 pickup = RAMASSER
-consentpickable.action.pickup = RAMASSER
+consentpickable.action.pickup = RAMASSER  •  [MAINTENIR 3s] ÉCHANGER
+consentpickable.action.swap = MAINTENIR (3s) ÉCHANGER

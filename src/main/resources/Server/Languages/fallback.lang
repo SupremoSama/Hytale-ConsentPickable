@@ -1,3 +1,4 @@
-﻿action.pickup = PICK UP
+action.pickup = PICK UP
 pickup = PICK UP
-consentpickable.action.pickup = PICK UP
+consentpickable.action.pickup = PICK UP  •  [HOLD 3s] SWAP
+consentpickable.action.swap = HOLD (3s) SWAP

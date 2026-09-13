@@ -32,17 +32,25 @@ public class ConsentPickablePlugin extends JavaPlugin {
     protected void setup() {
         LOGGER.atInfo().log("Initializing ConsentPickable mod...");
 
-        // Register custom Use interaction codec
+        // Register custom Use and Swap interaction codecs
         getCodecRegistry(Interaction.CODEC).register(
                 ConsentPickupUseInteraction.TYPE_ID,
                 ConsentPickupUseInteraction.class,
                 ConsentPickupUseInteraction.CODEC
         );
+        getCodecRegistry(Interaction.CODEC).register(
+                com.consentpickable.interaction.ConsentPickupSwapInteraction.TYPE_ID,
+                com.consentpickable.interaction.ConsentPickupSwapInteraction.class,
+                com.consentpickable.interaction.ConsentPickupSwapInteraction.CODEC
+        );
 
         // Pre-load Interaction and RootInteraction assets into the engine
         Interaction.getAssetStore().loadAssets(
                 com.hypixel.hytale.assetstore.map.DefaultAssetMap.DEFAULT_PACK_KEY,
-                java.util.List.of(new ConsentPickupUseInteraction(ConsentPickupUseInteraction.TYPE_ID))
+                java.util.List.of(
+                        new ConsentPickupUseInteraction(ConsentPickupUseInteraction.TYPE_ID),
+                        new com.consentpickable.interaction.ConsentPickupSwapInteraction(com.consentpickable.interaction.ConsentPickupSwapInteraction.TYPE_ID)
+                )
         );
         ConsentPickupUseInteraction.ROOT_INTERACTION.build();
         RootInteraction.getAssetStore().loadAssets(

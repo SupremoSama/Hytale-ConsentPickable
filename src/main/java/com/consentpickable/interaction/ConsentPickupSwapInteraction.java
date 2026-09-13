@@ -15,32 +15,27 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
-import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
-
 /**
- * Custom SimpleInstantInteraction inserted into the unarmed Use chain in Empty.json.
- * Triggered when the player presses the Use key. If the player is targeting a dropped item,
- * picks it up and marks the interaction Finished. If not, marks it Failed so subsequent
- * interactions (BreakBlock, Harvest, etc.) proceed as normal.
+ * Custom SimpleInstantInteraction triggered when the player completes a 3-second hold.
+ * Swaps the player's held item in their active hotbar slot with the targeted ground item.
+ * The previously held item is safely dropped onto the ground (never deleted).
  */
-public final class ConsentPickupUseInteraction extends SimpleInstantInteraction {
+public final class ConsentPickupSwapInteraction extends SimpleInstantInteraction {
 
-    public static final String TYPE_ID = "ConsentPickupUse";
-    public static final String ROOT_ID = "ConsentPickupUseRoot";
-    public static final RootInteraction ROOT_INTERACTION = new RootInteraction(ROOT_ID, "ConsentPickupCharge");
+    public static final String TYPE_ID = "ConsentPickupSwap";
 
-    public static final BuilderCodec<ConsentPickupUseInteraction> CODEC = BuilderCodec.builder(
-            ConsentPickupUseInteraction.class,
-            ConsentPickupUseInteraction::new,
+    public static final BuilderCodec<ConsentPickupSwapInteraction> CODEC = BuilderCodec.builder(
+            ConsentPickupSwapInteraction.class,
+            ConsentPickupSwapInteraction::new,
             SimpleInstantInteraction.CODEC
-    ).documentation("ConsentPickable: picks up the targeted item. Fails when nothing is targeted so the rest of the chain runs.")
+    ).documentation("ConsentPickable: swaps player's held item with targeted ground item, dropping previous held item.")
     .build();
 
-    public ConsentPickupUseInteraction() {
+    public ConsentPickupSwapInteraction() {
         super(TYPE_ID);
     }
 
-    public ConsentPickupUseInteraction(String id) {
+    public ConsentPickupSwapInteraction(String id) {
         super(id);
     }
 
@@ -71,8 +66,8 @@ public final class ConsentPickupUseInteraction extends SimpleInstantInteraction 
             return;
         }
 
-        final boolean pickedUp = PickupService.getInstance().tryPickup(instigatorRef, playerRef, commandBuffer);
-        if (pickedUp) {
+        final boolean swapped = PickupService.getInstance().trySwapHandItem(instigatorRef, playerRef, commandBuffer);
+        if (swapped) {
             context.getState().state = InteractionState.Finished;
         } else {
             context.getState().state = InteractionState.Failed;
@@ -87,6 +82,6 @@ public final class ConsentPickupUseInteraction extends SimpleInstantInteraction 
 
     @Override
     public String toString() {
-        return "ConsentPickupUseInteraction{" + super.toString() + "}";
+        return "ConsentPickupSwapInteraction{" + super.toString() + "}";
     }
 }

@@ -93,6 +93,144 @@ public final class PickupService {
     }
 
     /**
+     * Attempts to swap the player's held hand item with the item currently targeted.
+     * The item in hand is dropped onto the ground (never deleted).
+     *
+     * @param playerEntityRef The entity ref of the player
+     * @param playerRef       The PlayerRef networking component
+     * @param accessor        The ComponentAccessor (Store or CommandBuffer)
+     * @return true if the swap succeeded, false otherwise
+     */
+    public boolean trySwapHandItem(@Nonnull final Ref<EntityStore> playerEntityRef,
+                                   @Nonnull final PlayerRef playerRef,
+                                   @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        if (!playerEntityRef.isValid()) {
+            return false;
+        }
+
+        final var session = getSession(playerRef.getUuid());
+        if (session == null || !session.hasTarget()) {
+            return false;
+        }
+
+        final var itemRef = session.getTargetedItemRef();
+        if (itemRef == null || !itemRef.isValid()) {
+            session.clearTarget();
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        return swapTarget(accessor, playerEntityRef, playerRef, itemRef, DEFAULT_MAX_PICKUP_DIST_SQ);
+    }
+
+    /**
+     * Executes the authoritative item swap: drops player's held item onto the ground and
+     * places the targeted ground item into the active hotbar slot.
+     */
+    public boolean swapTarget(@Nonnull final ComponentAccessor<EntityStore> accessor,
+                              @Nonnull final Ref<EntityStore> playerEntityRef,
+                              @Nonnull final PlayerRef playerRef,
+                              @Nonnull final Ref<EntityStore> itemRef,
+                              final double maxDistSq) {
+        if (!playerEntityRef.isValid() || !itemRef.isValid()) {
+            final var session = getSession(playerRef.getUuid());
+            if (session != null) {
+                session.clearTarget();
+            }
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final var itemComponent = accessor.getComponent(itemRef, ItemComponent.getComponentType());
+        final var itemTransform = accessor.getComponent(itemRef, TransformComponent.getComponentType());
+        final var playerTransform = accessor.getComponent(playerEntityRef, TransformComponent.getComponentType());
+
+        if (itemComponent == null || itemTransform == null || playerTransform == null) {
+            final var session = getSession(playerRef.getUuid());
+            if (session != null) {
+                session.clearTarget();
+            }
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final var groundStack = itemComponent.getItemStack();
+        if (groundStack == null || groundStack.isEmpty()) {
+            final var session = getSession(playerRef.getUuid());
+            if (session != null) {
+                session.clearTarget();
+            }
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final var itemPos = itemTransform.getPosition();
+        if (itemPos.distanceSquared(playerTransform.getPosition()) > maxDistSq) {
+            final var session = getSession(playerRef.getUuid());
+            if (session != null) {
+                session.clearTarget();
+            }
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final var hotbar = accessor.getComponent(playerEntityRef, InventoryComponent.Hotbar.getComponentType());
+        if (hotbar == null) {
+            return false;
+        }
+
+        final byte activeSlot = hotbar.getActiveSlot();
+        final ItemStack heldStack = hotbar.getActiveItem();
+
+        // If player has an item in hand, drop it onto the ground where the targeted item was
+        if (heldStack != null && !heldStack.isEmpty()) {
+            final Holder<EntityStore> dropHolder = ItemComponent.generateItemDrop(
+                    accessor,
+                    heldStack,
+                    itemPos,
+                    itemTransform.getRotation(),
+                    0.2f,
+                    0.0f,
+                    ItemComponent.PICKUP_DELAY_DROPPED
+            );
+
+            if (dropHolder != null) {
+                if (accessor instanceof CommandBuffer<EntityStore> cb) {
+                    cb.addEntity(dropHolder, AddReason.SPAWN);
+                } else if (accessor instanceof Store<EntityStore> store) {
+                    store.addEntity(dropHolder, AddReason.SPAWN);
+                }
+            }
+        }
+
+        // Put the ground item into player's active hotbar slot
+        hotbar.getInventory().setItemStackForSlot((short) activeSlot, groundStack);
+        hotbar.setOutdatedEquipment(true);
+
+        // Remove original targeted entity from world
+        itemComponent.setRemovedByPlayerPickup(true);
+        if (accessor instanceof CommandBuffer<EntityStore> cb) {
+            cb.removeEntity(itemRef, RemoveReason.REMOVE);
+        } else if (accessor instanceof Store<EntityStore> store) {
+            store.removeEntity(itemRef, RemoveReason.REMOVE);
+        }
+
+        // Visual & audio pickup notification
+        Player.notifyPickupItem(playerEntityRef, groundStack, itemPos, accessor);
+
+        final var session = getOrCreateSession(playerRef.getUuid());
+        session.clearTarget();
+        hidePrompt(playerEntityRef, playerRef, accessor);
+
+        final var interactions = accessor.getComponent(playerEntityRef, Interactions.getComponentType());
+        if (interactions != null && ConsentPickupUseInteraction.ROOT_ID.equals(interactions.getInteractionId(InteractionType.Use))) {
+            interactions.removeInteractionId(InteractionType.Use);
+        }
+
+        return true;
+    }
+
+    /**
      * Executes the authoritative item pickup into the player's inventory using Hytale's native systems.
      */
     public boolean pickupTarget(@Nonnull final ComponentAccessor<EntityStore> accessor,
