@@ -1,5 +1,6 @@
 package com.consentpickable.ui;
 
+import com.consentpickable.util.I18nHelper;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -54,68 +55,7 @@ public final class ConsentPickupHud extends CustomUIHud {
 
     @Nonnull
     public static String getLocalizedPickupText(@Nullable final String language) {
-        if (language != null) {
-            final String lower = language.toLowerCase();
-            if (lower.startsWith("pt")) return "PEGAR  •  [SEGURE 0.5s] TROCAR";
-            if (lower.startsWith("es")) return "RECOGER  •  [MANTÉN 0.5s] CAMBIAR";
-            if (lower.startsWith("fr")) return "RAMASSER  •  [MAINTENIR 0.5s] ÉCHANGER";
-            if (lower.startsWith("de")) return "AUFHEBEN  •  [HALTEN 0.5s] TAUSCHEN";
-            if (lower.startsWith("ru")) return "ПОДОБРАТЬ  •  [0.5s] ОБМЕНЯТЬ";
-            if (lower.startsWith("zh")) return "拾取  •  [长按0.5秒] 替换";
-        }
-        return "PICK UP  •  [HOLD 0.5s] SWAP";
-    }
-
-    @Nonnull
-    public static String getLocalizedQualityText(@Nullable final String qualityId, @Nullable final String language) {
-        if (qualityId == null || qualityId.isEmpty()) return "";
-        final String q = qualityId.toLowerCase();
-        final String lang = language != null ? language.toLowerCase() : "en";
-        final boolean isPt = lang.startsWith("pt");
-        final boolean isEs = lang.startsWith("es");
-        final boolean isFr = lang.startsWith("fr");
-        final boolean isDe = lang.startsWith("de");
-
-        if (q.contains("common") && !q.contains("uncommon")) {
-            if (isPt || isEs) return "Comum";
-            if (isFr) return "Commun";
-            if (isDe) return "Gewöhnlich";
-            return "Common";
-        }
-        if (q.contains("uncommon")) {
-            if (isPt) return "Incomum";
-            if (isEs) return "Poco común";
-            if (isFr) return "Peu commun";
-            if (isDe) return "Ungewöhnlich";
-            return "Uncommon";
-        }
-        if (q.contains("rare")) {
-            if (isPt || isEs) return "Raro";
-            if (isFr) return "Rare";
-            if (isDe) return "Selten";
-            return "Rare";
-        }
-        if (q.contains("epic")) {
-            if (isPt || isEs) return "Épico";
-            if (isFr) return "Épique";
-            if (isDe) return "Episch";
-            return "Epic";
-        }
-        if (q.contains("legendary")) {
-            if (isPt) return "Lendário";
-            if (isEs) return "Legendario";
-            if (isFr) return "Légendaire";
-            if (isDe) return "Legendär";
-            return "Legendary";
-        }
-        if (q.contains("junk")) {
-            if (isPt) return "Lixo";
-            if (isEs) return "Basura";
-            if (isFr) return "Rebut";
-            if (isDe) return "Schrott";
-            return "Junk";
-        }
-        return qualityId;
+        return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD 0.5s] SWAP");
     }
 
     @Override

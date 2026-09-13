@@ -3,6 +3,7 @@ package com.consentpickable.service;
 import com.consentpickable.interaction.ConsentPickupUseInteraction;
 import com.consentpickable.session.PlayerTargetSession;
 import com.consentpickable.ui.ConsentPickupHud;
+import com.consentpickable.util.I18nHelper;
 import com.hypixel.hytale.component.*;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionType;
@@ -574,7 +575,7 @@ public final class PickupService {
             final ItemQuality quality = ItemQuality.getAssetMap().getAsset(qualityIndex);
             if (quality != null) {
                 rarityKey = quality.getLocalizationKey();
-                rarityText = ConsentPickupHud.getLocalizedQualityText(quality.getId(), playerRef.getLanguage());
+                rarityText = rarityKey != null ? I18nHelper.getOrFallback(playerRef.getLanguage(), rarityKey, quality.getId()) : quality.getId();
                 final Color textColor = quality.getTextColor();
                 if (textColor != null) {
                     rarityColor = String.format("#%02x%02x%02x", textColor.red & 0xFF, textColor.green & 0xFF, textColor.blue & 0xFF);

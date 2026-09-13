@@ -1,4 +1,2 @@
-action.pickup = RAMASSER
-pickup = RAMASSER
-consentpickable.action.pickup = RAMASSER  •  [MAINTENIR 0.5s] ÉCHANGER
-consentpickable.action.swap = MAINTENIR (0.5s) ÉCHANGER
+action.pickup = RAMASSER  •  [MAINTENIR 0.5s] ÉCHANGER
+action.swap = MAINTENIR (0.5s) ÉCHANGER
