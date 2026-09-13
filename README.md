@@ -1,4 +1,8 @@
-﻿# Hytale Consent Pickable
+<p align="center">
+  <img src="logo.png" width="220" alt="Consent Pickable Logo"/>
+</p>
+
+# Hytale Consent Pickable
 
 A Hytale server-side mod that disables automatic item suction / vacuum pickup and replaces it with an immersive, interactive crosshair HUD prompt.
 
