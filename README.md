@@ -1,22 +1,26 @@
-<p align="center">
-  <img src="logo.png" width="220" alt="Consent Pickable Logo"/>
-</p>
-
 # Hytale Consent Pickable
 
-A Hytale server-side mod that disables automatic item suction / vacuum pickup and replaces it with an immersive, interactive crosshair HUD prompt.
+Take full control over item pickup with an immersive, interaction-based system that removes automatic vacuum pickup and gives players precise control over every item they collect.
 
-## Features
+Features
+No Vacuum Pickup: Items dropped on the ground remain exactly where they are until a player explicitly interacts with them.
+Interactive HUD Prompt: Aim at any dropped item to display its name, quantity, rarity, and available interaction hints.
+Tap to Pick Up: Tap the Use key (F by default) to pick up the targeted item, automatically adding it to your inventory or topping up an existing stack when possible.
+Hold to Swap: Hold the Use key for 0.5 seconds to instantly swap the targeted ground item with the item currently held in your active hotbar slot. The previously held item is safely dropped at your feet.
+Precise Item Interaction: Pick up exactly what you are looking at instead of automatically collecting nearby items.
+Stack-Aware Pickup: Existing inventory stacks are filled before creating new ones, keeping item collection clean and efficient.
 
-- **No Vacuum Pickup**: Items dropped on the ground stay where they are until players explicitly interact with them.
-- **Interactive HUD Prompt**: Aim at any dropped item to see its name, count, rarity tag (with official rarity colors matching the inventory), and action hints.
-- **Tap to Pick Up**: Tap the Use key (F by default) to pick up items into your inventory or top up existing stacks.
-- **Hold to Swap**: Hold the Use key for 0.5 seconds to instantly exchange the targeted ground item with whatever item you are currently holding in your active hotbar slot. The previous held item is dropped safely to the ground (never deleted).
-- **Native Localization Support**: Built-in support for English, Portuguese (pt-BR), Spanish (es-ES), German (de-DE), and French (fr-FR), integrating directly with Hytale's native `I18nModule`.
-- **Pure Server-Side**: Built using standard Hytale server plugin architecture.
+Controls
+Aim at a dropped item → Display item information
+Use Key (F) → Pick up targeted item
+Hold Use Key for 0.5s → Swap targeted item with the active hotbar item
 
-## Installation
+Designed to make item collection more deliberate, readable, and immersive while preserving fast inventory management.
 
-1. Download the latest Hytale-ConsentPickable-x.x.x.jar from Releases.
-2. Place the JAR file into your Hytale server's mods or plugins directory.
-3. Restart the server.
+Credits
+Built using the Hytale Java plugin template originally developed by UpcraftLP and later refined by Kaupenjoe.
+
+Special thanks to both developers for their foundational work and continued contributions to the Hytale modding community.
+
+This mod is an original concept inspired by Fortnite’s item pickup system, adapted and reimagined for Hytale.
+
