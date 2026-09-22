@@ -13,6 +13,7 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
@@ -75,6 +76,11 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
         final PlayerTargetSession session = PickupService.getInstance().getOrCreateSession(playerRef.getUuid());
         final long nowMs = System.currentTimeMillis();
 
+        final MovementStatesComponent movementComp = store.getComponent(playerEntityRef, MovementStatesComponent.getComponentType());
+        final boolean isCrouching = movementComp != null && movementComp.getMovementStates() != null && movementComp.getMovementStates().crouching;
+        final boolean crouchStateChanged = isCrouching != session.isCrouching();
+        session.setCrouching(isCrouching);
+
         // Check if currently tracked target entity was removed or invalidated
         final Ref<EntityStore> trackedRef = session.getRawTargetedItemRef();
         final boolean targetStillValid;
@@ -85,9 +91,9 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
             targetStillValid = false;
         }
 
-        // If tracked target is no longer valid, we must NOT skip scan, so we can clean up immediately
+        // If tracked target is no longer valid, or crouch state changed, we must NOT skip scan, so we can clean up or update immediately
         final boolean targetDied = session.hasTrackedTarget() && !targetStillValid;
-        if (!targetDied && session.shouldSkipScan(eyePos, lookDir, nowMs)) {
+        if (!targetDied && !crouchStateChanged && session.shouldSkipScan(eyePos, lookDir, nowMs)) {
             return;
         }
         session.updatePose(eyePos, lookDir, nowMs);
@@ -170,15 +176,37 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
 
         // Target transition & HUD updates
         if (bestItemRef != null && bestItemStack != null) {
+            // Count items in cluster within 3.5m of best target
+            int clusterCount = 1;
+            final TransformComponent bestTransform = store.getComponent(bestItemRef, TransformComponent.getComponentType());
+            if (bestTransform != null) {
+                final Vector3d bestPos = bestTransform.getPosition();
+                final double clusterRadiusSq = 3.5 * 3.5;
+                for (final Ref<EntityStore> cRef : candidateRefs) {
+                    if (cRef == null || !cRef.isValid() || cRef.equals(bestItemRef)) {
+                        continue;
+                    }
+                    final TransformComponent cTransform = store.getComponent(cRef, TransformComponent.getComponentType());
+                    if (cTransform != null && cTransform.getPosition().distanceSquared(bestPos) <= clusterRadiusSq) {
+                        final ItemComponent cItem = store.getComponent(cRef, ItemComponent.getComponentType());
+                        if (cItem != null && cItem.getItemStack() != null && !cItem.getItemStack().isEmpty()) {
+                            clusterCount++;
+                        }
+                    }
+                }
+            }
+
             session.recordTargetSeen(nowMs);
             final Ref<EntityStore> currentTarget = session.getTargetedItemRef();
             final boolean targetChanged = !bestItemRef.equals(currentTarget);
             final boolean countChanged = session.getLastItemCount() != bestItemStack.getQuantity();
+            final boolean clusterChanged = session.getNearbyItemCount() != clusterCount;
 
-            if (targetChanged || countChanged) {
+            if (targetChanged || countChanged || clusterChanged || crouchStateChanged) {
                 final String name = PickupService.getSafeItemName(bestItemStack);
                 session.setTarget(bestItemRef, name, bestItemStack.getQuantity());
-                PickupService.getInstance().showPrompt(playerEntityRef, playerRef, bestItemStack, store);
+                session.setNearbyItemCount(clusterCount);
+                PickupService.getInstance().showPrompt(playerEntityRef, playerRef, bestItemStack, clusterCount, isCrouching, store);
             }
 
             // Fake 'Use' key: override player's Use interaction to trigger pickup

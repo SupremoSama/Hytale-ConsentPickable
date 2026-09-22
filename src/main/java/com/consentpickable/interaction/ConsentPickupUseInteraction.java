@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import org.jspecify.annotations.NonNull;
 
@@ -72,7 +73,16 @@ public final class ConsentPickupUseInteraction extends SimpleInstantInteraction 
             return;
         }
 
-        final boolean pickedUp = PickupService.getInstance().tryPickup(instigatorRef, playerRef, commandBuffer);
+        final MovementStatesComponent movementComp = commandBuffer.getComponent(instigatorRef, MovementStatesComponent.getComponentType());
+        final boolean isCrouching = movementComp != null && movementComp.getMovementStates() != null && movementComp.getMovementStates().crouching;
+
+        final boolean pickedUp;
+        if (isCrouching) {
+            pickedUp = PickupService.getInstance().tryPickupAllNearby(instigatorRef, playerRef, commandBuffer);
+        } else {
+            pickedUp = PickupService.getInstance().tryPickup(instigatorRef, playerRef, commandBuffer);
+        }
+
         if (pickedUp) {
             context.getState().state = InteractionState.Finished;
         } else {

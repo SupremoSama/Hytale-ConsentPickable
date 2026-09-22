@@ -23,6 +23,8 @@ public class PlayerTargetSession {
     @Nullable
     private String lastItemName;
     private int lastItemCount;
+    private int lastNearbyItemCount = 0;
+    private boolean lastCrouching = false;
 
     private final Vector3d lastEyePos = new Vector3d(Double.NaN, Double.NaN, Double.NaN);
     private final Vector3d lastLookDir = new Vector3d(Double.NaN, Double.NaN, Double.NaN);
@@ -78,8 +80,25 @@ public class PlayerTargetSession {
         this.targetedItemRef = null;
         this.lastItemName = null;
         this.lastItemCount = 0;
+        this.lastNearbyItemCount = 0;
         this.lastTargetSeenMs = 0;
         this.promptShowing = false;
+    }
+
+    public int getNearbyItemCount() {
+        return lastNearbyItemCount;
+    }
+
+    public void setNearbyItemCount(final int nearbyItemCount) {
+        this.lastNearbyItemCount = nearbyItemCount;
+    }
+
+    public boolean isCrouching() {
+        return lastCrouching;
+    }
+
+    public void setCrouching(final boolean crouching) {
+        this.lastCrouching = crouching;
     }
 
     public static final long TARGET_LOSS_DEBOUNCE_MS = 120;

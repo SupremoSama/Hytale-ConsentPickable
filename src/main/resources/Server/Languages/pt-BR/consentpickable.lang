@@ -1,2 +1,4 @@
 action.pickup = PEGAR  •  [SEGURE] TROCAR
+action.pickup.cluster = PEGAR  •  [SHIFT+F] TUDO (%d)  •  [SEGURE] TROCAR
+action.collect_all = COLETAR TUDO (%d)  •  [SEGURE] TROCAR
 action.swap = SEGURE TROCAR

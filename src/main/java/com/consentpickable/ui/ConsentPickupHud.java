@@ -32,7 +32,32 @@ public final class ConsentPickupHud extends CustomUIHud {
     @Nonnull
     private String currentRarityColor;
     private boolean currentRarityVisible;
+    private int currentNearbyCount;
+    private boolean currentCrouching;
     private boolean isVisible;
+
+    public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
+                            @Nonnull final Message displayName,
+                            @Nonnull final String itemName,
+                            final int itemCount,
+                            final int nearbyCount,
+                            final boolean isCrouching,
+                            @Nullable final String rarityKey,
+                            @Nullable final String rarityText,
+                            @Nullable final String rarityColor,
+                            final boolean rarityVisible) {
+        super(playerRef, KEY, 10);
+        this.currentDisplayName = displayName;
+        this.currentItemName = itemName;
+        this.currentItemCount = itemCount;
+        this.currentNearbyCount = nearbyCount;
+        this.currentCrouching = isCrouching;
+        this.currentRarityKey = rarityKey;
+        this.currentRarityText = rarityText;
+        this.currentRarityColor = rarityColor != null && !rarityColor.isEmpty() ? rarityColor : "#ffffff";
+        this.currentRarityVisible = rarityVisible;
+        this.isVisible = true;
+    }
 
     public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
                             @Nonnull final Message displayName,
@@ -42,27 +67,33 @@ public final class ConsentPickupHud extends CustomUIHud {
                             @Nullable final String rarityText,
                             @Nullable final String rarityColor,
                             final boolean rarityVisible) {
-        super(playerRef, KEY, 10);
-        this.currentDisplayName = displayName;
-        this.currentItemName = itemName;
-        this.currentItemCount = itemCount;
-        this.currentRarityKey = rarityKey;
-        this.currentRarityText = rarityText;
-        this.currentRarityColor = rarityColor != null && !rarityColor.isEmpty() ? rarityColor : "#ffffff";
-        this.currentRarityVisible = rarityVisible;
-        this.isVisible = true;
+        this(playerRef, displayName, itemName, itemCount, 1, false, rarityKey, rarityText, rarityColor, rarityVisible);
+    }
+
+    @Nonnull
+    public static String getLocalizedPickupText(@Nullable final String language, final int nearbyCount, final boolean isCrouching) {
+        if (nearbyCount > 1) {
+            if (isCrouching) {
+                final String template = I18nHelper.getOrFallback(language, "consentpickable.action.collect_all", "COLLECT ALL (%d)  •  [HOLD] SWAP");
+                return String.format(template, nearbyCount);
+            } else {
+                final String template = I18nHelper.getOrFallback(language, "consentpickable.action.pickup.cluster", "PICK UP  •  [SHIFT+F] ALL (%d)  •  [HOLD] SWAP");
+                return String.format(template, nearbyCount);
+            }
+        }
+        return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD] SWAP");
     }
 
     @Nonnull
     public static String getLocalizedPickupText(@Nullable final String language) {
-        return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD] SWAP");
+        return getLocalizedPickupText(language, 1, false);
     }
 
     @Override
     protected void build(@Nonnull final UICommandBuilder commandBuilder) {
         commandBuilder.append(UI_PATH);
-        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage());
-        commandBuilder.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
+        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage(), currentNearbyCount, currentCrouching);
+        commandBuilder.set("#ActionTitle.TextSpans", Message.raw(localizedAction));
         commandBuilder.set("#ActionTitle.Text", localizedAction);
         commandBuilder.set("#ItemName.TextSpans", currentDisplayName);
         commandBuilder.set("#ItemName.Style.TextColor", currentRarityColor);
@@ -81,6 +112,8 @@ public final class ConsentPickupHud extends CustomUIHud {
     public void showPrompt(@Nonnull final Message safeMsg,
                            @Nonnull final String safeName,
                            final int itemCount,
+                           final int nearbyCount,
+                           final boolean isCrouching,
                            @Nullable final String rarityKey,
                            @Nullable final String rarityText,
                            @Nullable final String rarityColor,
@@ -92,6 +125,8 @@ public final class ConsentPickupHud extends CustomUIHud {
         if (this.isVisible
                 && this.currentItemName.equals(safeName)
                 && this.currentItemCount == itemCount
+                && this.currentNearbyCount == nearbyCount
+                && this.currentCrouching == isCrouching
                 && this.currentRarityVisible == rarityVisible
                 && this.currentRarityColor.equals(safeColor)
                 && (this.currentRarityKey != null ? this.currentRarityKey : "").equals(safeRarityKey)) {
@@ -101,6 +136,8 @@ public final class ConsentPickupHud extends CustomUIHud {
         this.currentDisplayName = safeMsg;
         this.currentItemName = safeName;
         this.currentItemCount = itemCount;
+        this.currentNearbyCount = nearbyCount;
+        this.currentCrouching = isCrouching;
         this.currentRarityKey = rarityKey;
         this.currentRarityText = rarityText;
         this.currentRarityColor = safeColor;
@@ -111,8 +148,8 @@ public final class ConsentPickupHud extends CustomUIHud {
             this.isVisible = true;
             cmd.set("#PickupPromptRoot.Visible", true);
         }
-        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage());
-        cmd.set("#ActionTitle.TextSpans", Message.translation("consentpickable.action.pickup"));
+        final String localizedAction = getLocalizedPickupText(getPlayerRef().getLanguage(), nearbyCount, isCrouching);
+        cmd.set("#ActionTitle.TextSpans", Message.raw(localizedAction));
         cmd.set("#ActionTitle.Text", localizedAction);
         cmd.set("#ItemName.TextSpans", safeMsg);
         cmd.set("#ItemName.Style.TextColor", safeColor);
@@ -128,10 +165,22 @@ public final class ConsentPickupHud extends CustomUIHud {
         update(false, cmd);
     }
 
+    public void showPrompt(@Nonnull final Message safeMsg,
+                           @Nonnull final String safeName,
+                           final int itemCount,
+                           @Nullable final String rarityKey,
+                           @Nullable final String rarityText,
+                           @Nullable final String rarityColor,
+                           final boolean rarityVisible) {
+        showPrompt(safeMsg, safeName, itemCount, 1, false, rarityKey, rarityText, rarityColor, rarityVisible);
+    }
+
     public void hidePrompt() {
         this.isVisible = false;
         this.currentItemName = "";
         this.currentItemCount = 0;
+        this.currentNearbyCount = 1;
+        this.currentCrouching = false;
         this.currentRarityKey = null;
         this.currentRarityText = null;
         this.currentRarityColor = "#ffffff";

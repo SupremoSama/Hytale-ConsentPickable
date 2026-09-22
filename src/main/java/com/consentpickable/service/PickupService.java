@@ -5,10 +5,12 @@ import com.consentpickable.session.PlayerTargetSession;
 import com.consentpickable.ui.ConsentPickupHud;
 import com.consentpickable.util.I18nHelper;
 import com.hypixel.hytale.component.*;
+import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.protocol.Color;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemQuality;
+import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
@@ -27,6 +29,7 @@ import org.joml.Vector3d;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class PickupService {
 
     public static final double DEFAULT_MAX_PICKUP_DIST_SQ = 6.0 * 6.0;
+    public static final double CLUSTER_PICKUP_RADIUS = 3.5;
 
     private static final PickupService INSTANCE = new PickupService();
 
@@ -92,6 +96,107 @@ public final class PickupService {
         }
 
         return pickupTarget(accessor, playerEntityRef, playerRef, itemRef, DEFAULT_MAX_PICKUP_DIST_SQ);
+    }
+
+    /**
+     * Attempts to pick up all dropped items in a cluster around the targeted item,
+     * up to the player's available inventory space.
+     *
+     * @param playerEntityRef The entity ref of the player
+     * @param playerRef       The PlayerRef networking component
+     * @param accessor        The ComponentAccessor (Store or CommandBuffer)
+     * @return true if at least one item was picked up, false otherwise
+     */
+    public boolean tryPickupAllNearby(@Nonnull final Ref<EntityStore> playerEntityRef,
+                                      @Nonnull final PlayerRef playerRef,
+                                      @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        if (!playerEntityRef.isValid()) {
+            return false;
+        }
+
+        final var session = getSession(playerRef.getUuid());
+        if (session == null || !session.hasTarget()) {
+            return false;
+        }
+
+        final var primaryTargetRef = session.getTargetedItemRef();
+        if (primaryTargetRef == null || !primaryTargetRef.isValid()) {
+            session.clearTarget();
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final var primaryTransform = accessor.getComponent(primaryTargetRef, TransformComponent.getComponentType());
+        final var playerTransform = accessor.getComponent(playerEntityRef, TransformComponent.getComponentType());
+        if (primaryTransform == null || playerTransform == null) {
+            session.clearTarget();
+            hidePrompt(playerEntityRef, playerRef, accessor);
+            return false;
+        }
+
+        final Vector3d clusterCenter = new Vector3d(primaryTransform.getPosition());
+        final Vector3d playerPos = new Vector3d(playerTransform.getPosition());
+
+        // 1. Pick up primary targeted item first
+        boolean anyPickedUp = pickupTarget(accessor, playerEntityRef, playerRef, primaryTargetRef, DEFAULT_MAX_PICKUP_DIST_SQ);
+
+        // 2. Query nearby dropped items in the cluster
+        final SpatialResource<Ref<EntityStore>, EntityStore> itemSpatial;
+        if (accessor instanceof CommandBuffer<EntityStore> cb) {
+            itemSpatial = cb.getResource(EntityModule.get().getItemSpatialResourceType());
+        } else if (accessor instanceof Store<EntityStore> store) {
+            itemSpatial = store.getResource(EntityModule.get().getItemSpatialResourceType());
+        } else {
+            itemSpatial = null;
+        }
+
+        if (itemSpatial != null) {
+            final List<Ref<EntityStore>> candidateRefs = SpatialResource.getThreadLocalReferenceList();
+            itemSpatial.getSpatialStructure().collect(clusterCenter, (float) CLUSTER_PICKUP_RADIUS, candidateRefs);
+
+            // Sort candidate items by distance to player so nearest items are picked up first
+            candidateRefs.sort((r1, r2) -> {
+                if (r1 == null || !r1.isValid()) return 1;
+                if (r2 == null || !r2.isValid()) return -1;
+                final var t1 = accessor.getComponent(r1, TransformComponent.getComponentType());
+                final var t2 = accessor.getComponent(r2, TransformComponent.getComponentType());
+                if (t1 == null) return 1;
+                if (t2 == null) return -1;
+                return Double.compare(t1.getPosition().distanceSquared(playerPos), t2.getPosition().distanceSquared(playerPos));
+            });
+
+            for (final Ref<EntityStore> candidateRef : candidateRefs) {
+                if (candidateRef == null || !candidateRef.isValid() || candidateRef.equals(primaryTargetRef)) {
+                    continue;
+                }
+
+                final var candidateItemComp = accessor.getComponent(candidateRef, ItemComponent.getComponentType());
+                final var candidateTransform = accessor.getComponent(candidateRef, TransformComponent.getComponentType());
+                if (candidateItemComp == null || candidateTransform == null) {
+                    continue;
+                }
+
+                final var stack = candidateItemComp.getItemStack();
+                if (stack == null || stack.isEmpty()) {
+                    continue;
+                }
+
+                // Verify item is within reach of player
+                if (candidateTransform.getPosition().distanceSquared(playerPos) > DEFAULT_MAX_PICKUP_DIST_SQ) {
+                    continue;
+                }
+
+                final boolean picked = pickupTarget(accessor, playerEntityRef, playerRef, candidateRef, DEFAULT_MAX_PICKUP_DIST_SQ);
+                if (picked) {
+                    anyPickedUp = true;
+                } else {
+                    // Inventory is full, stop collecting
+                    break;
+                }
+            }
+        }
+
+        return anyPickedUp;
     }
 
     /**
@@ -552,6 +657,8 @@ public final class PickupService {
     public void showPrompt(@Nonnull final Ref<EntityStore> playerEntityRef,
                            @Nonnull final PlayerRef playerRef,
                            @Nonnull final ItemStack itemStack,
+                           final int nearbyCount,
+                           final boolean isCrouching,
                            @Nonnull final ComponentAccessor<EntityStore> accessor) {
         final PlayerTargetSession session = getSession(playerRef.getUuid());
         if (session != null) {
@@ -588,11 +695,18 @@ public final class PickupService {
 
         final CustomUIHud existing = player.getHudManager().getCustomHud(ConsentPickupHud.KEY);
         if (existing instanceof ConsentPickupHud consentHud) {
-            consentHud.showPrompt(displayName, itemName, itemCount, rarityKey, rarityText, rarityColor, rarityVisible);
+            consentHud.showPrompt(displayName, itemName, itemCount, nearbyCount, isCrouching, rarityKey, rarityText, rarityColor, rarityVisible);
         } else {
-            final ConsentPickupHud newHud = new ConsentPickupHud(playerRef, displayName, itemName, itemCount, rarityKey, rarityText, rarityColor, rarityVisible);
+            final ConsentPickupHud newHud = new ConsentPickupHud(playerRef, displayName, itemName, itemCount, nearbyCount, isCrouching, rarityKey, rarityText, rarityColor, rarityVisible);
             player.getHudManager().addCustomHud(playerRef, newHud);
         }
+    }
+
+    public void showPrompt(@Nonnull final Ref<EntityStore> playerEntityRef,
+                           @Nonnull final PlayerRef playerRef,
+                           @Nonnull final ItemStack itemStack,
+                           @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        showPrompt(playerEntityRef, playerRef, itemStack, 1, false, accessor);
     }
 
     /**
