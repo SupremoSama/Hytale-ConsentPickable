@@ -1,4 +1,4 @@
 action.pickup = RECOGER  •  [MANTÉN] CAMBIAR
-action.pickup.cluster = RECOGER  •  [SHIFT+F] TODO (%d)  •  [MANTÉN] CAMBIAR
-action.collect_all = RECOGER TODO (%d)  •  [MANTÉN] CAMBIAR
+action.pickup.cluster = RECOGER  •  [MANTÉN] CAMBIAR
+action.collect_all = RECOGER TODO (%d)
 action.swap = MANTÉN CAMBIAR

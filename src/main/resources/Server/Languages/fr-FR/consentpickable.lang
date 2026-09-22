@@ -1,4 +1,4 @@
 action.pickup = RAMASSER  •  [MAINTENIR] ÉCHANGER
-action.pickup.cluster = RAMASSER  •  [SHIFT+F] TOUT (%d)  •  [MAINTENIR] ÉCHANGER
-action.collect_all = TOUT RAMASSER (%d)  •  [MAINTENIR] ÉCHANGER
+action.pickup.cluster = RAMASSER  •  [MAINTENIR] ÉCHANGER
+action.collect_all = TOUT RAMASSER (%d)
 action.swap = MAINTENIR ÉCHANGER

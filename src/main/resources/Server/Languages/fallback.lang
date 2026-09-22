@@ -1,8 +1,8 @@
 consentpickable.action.pickup = PICK UP  •  [HOLD] SWAP
-consentpickable.action.pickup.cluster = PICK UP  •  [SHIFT+F] ALL (%d)  •  [HOLD] SWAP
+consentpickable.action.pickup.cluster = PICK UP  •  [HOLD] SWAP
 consentpickable.action.collect_all = COLLECT ALL (%d)  •  [HOLD] SWAP
 consentpickable.action.swap = HOLD SWAP
 action.pickup = PICK UP  •  [HOLD] SWAP
-action.pickup.cluster = PICK UP  •  [SHIFT+F] ALL (%d)  •  [HOLD] SWAP
-action.collect_all = COLLECT ALL (%d)  •  [HOLD] SWAP
+action.pickup.cluster = PICK UP  •  [HOLD] SWAP
+action.collect_all = COLLECT ALL (%d)
 action.swap = HOLD SWAP

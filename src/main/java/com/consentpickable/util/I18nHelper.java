@@ -45,21 +45,4 @@ public final class I18nHelper {
         return defaultFallback;
     }
 
-    /**
-     * Resolves a localized string, automatically generating a capitalized fallback from the key if not found.
-     */
-    @Nonnull
-    public static String getOrFallback(@Nullable final String language, @Nonnull final String key) {
-        return getOrFallback(language, key, formatKeyFallback(key));
-    }
-
-    @Nonnull
-    public static String formatKeyFallback(@Nonnull final String key) {
-        final String[] parts = key.split("\\.");
-        final String last = parts[parts.length - 1];
-        if (last.isEmpty()) {
-            return key;
-        }
-        return Character.toUpperCase(last.charAt(0)) + last.substring(1);
-    }
 }

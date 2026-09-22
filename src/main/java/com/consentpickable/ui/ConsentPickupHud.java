@@ -59,34 +59,18 @@ public final class ConsentPickupHud extends CustomUIHud {
         this.isVisible = true;
     }
 
-    public ConsentPickupHud(@Nonnull final PlayerRef playerRef,
-                            @Nonnull final Message displayName,
-                            @Nonnull final String itemName,
-                            final int itemCount,
-                            @Nullable final String rarityKey,
-                            @Nullable final String rarityText,
-                            @Nullable final String rarityColor,
-                            final boolean rarityVisible) {
-        this(playerRef, displayName, itemName, itemCount, 1, false, rarityKey, rarityText, rarityColor, rarityVisible);
-    }
-
     @Nonnull
     public static String getLocalizedPickupText(@Nullable final String language, final int nearbyCount, final boolean isCrouching) {
         if (nearbyCount > 1) {
+            final String template;
             if (isCrouching) {
-                final String template = I18nHelper.getOrFallback(language, "consentpickable.action.collect_all", "COLLECT ALL (%d)  •  [HOLD] SWAP");
-                return String.format(template, nearbyCount);
+                template = I18nHelper.getOrFallback(language, "consentpickable.action.collect_all", "COLLECT ALL (%d)");
             } else {
-                final String template = I18nHelper.getOrFallback(language, "consentpickable.action.pickup.cluster", "PICK UP  •  [SHIFT+F] ALL (%d)  •  [HOLD] SWAP");
-                return String.format(template, nearbyCount);
+                template = I18nHelper.getOrFallback(language, "consentpickable.action.pickup.cluster", "PICK UP • [HOLD] SWAP");
             }
+            return String.format(template, nearbyCount);
         }
         return I18nHelper.getOrFallback(language, "consentpickable.action.pickup", "PICK UP  •  [HOLD] SWAP");
-    }
-
-    @Nonnull
-    public static String getLocalizedPickupText(@Nullable final String language) {
-        return getLocalizedPickupText(language, 1, false);
     }
 
     @Override
@@ -163,16 +147,6 @@ public final class ConsentPickupHud extends CustomUIHud {
             cmd.set("#ItemRarity.Style.TextColor", safeColor);
         }
         update(false, cmd);
-    }
-
-    public void showPrompt(@Nonnull final Message safeMsg,
-                           @Nonnull final String safeName,
-                           final int itemCount,
-                           @Nullable final String rarityKey,
-                           @Nullable final String rarityText,
-                           @Nullable final String rarityColor,
-                           final boolean rarityVisible) {
-        showPrompt(safeMsg, safeName, itemCount, 1, false, rarityKey, rarityText, rarityColor, rarityVisible);
     }
 
     public void hidePrompt() {

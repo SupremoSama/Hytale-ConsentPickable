@@ -1,4 +1,4 @@
 action.pickup = PICK UP  •  [HOLD] SWAP
-action.pickup.cluster = PICK UP  •  [SHIFT+F] ALL (%d)  •  [HOLD] SWAP
-action.collect_all = COLLECT ALL (%d)  •  [HOLD] SWAP
+action.pickup.cluster = PICK UP  •  [HOLD] SWAP
+action.collect_all = COLLECT ALL (%d)
 action.swap = HOLD SWAP

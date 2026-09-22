@@ -1,4 +1,4 @@
 action.pickup = AUFHEBEN  •  [HALTEN] TAUSCHEN
-action.pickup.cluster = AUFHEBEN  •  [SHIFT+F] ALLES (%d)  •  [HALTEN] TAUSCHEN
-action.collect_all = ALLES AUFHEBEN (%d)  •  [HALTEN] TAUSCHEN
+action.pickup.cluster = AUFHEBEN  •  [HALTEN] TAUSCHEN
+action.collect_all = ALLES AUFHEBEN (%d)
 action.swap = HALTEN TAUSCHEN
