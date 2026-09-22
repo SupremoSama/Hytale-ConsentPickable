@@ -75,7 +75,19 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
         final PlayerTargetSession session = PickupService.getInstance().getOrCreateSession(playerRef.getUuid());
         final long nowMs = System.currentTimeMillis();
 
-        if (session.shouldSkipScan(eyePos, lookDir, nowMs)) {
+        // Check if currently tracked target entity was removed or invalidated
+        final Ref<EntityStore> trackedRef = session.getRawTargetedItemRef();
+        final boolean targetStillValid;
+        if (trackedRef != null && trackedRef.isValid()) {
+            final ItemComponent itemComp = store.getComponent(trackedRef, ItemComponent.getComponentType());
+            targetStillValid = itemComp != null && itemComp.getItemStack() != null && !itemComp.getItemStack().isEmpty();
+        } else {
+            targetStillValid = false;
+        }
+
+        // If tracked target is no longer valid, we must NOT skip scan, so we can clean up immediately
+        final boolean targetDied = session.hasTrackedTarget() && !targetStillValid;
+        if (!targetDied && session.shouldSkipScan(eyePos, lookDir, nowMs)) {
             return;
         }
         session.updatePose(eyePos, lookDir, nowMs);
@@ -179,8 +191,8 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 interactions.setInteractionId(InteractionType.Use, ConsentPickupUseInteraction.ROOT_ID);
             }
         } else {
-            // If the player is actively holding/charging the Use interaction, do not break the hold
-            if (session.hasTarget()) {
+            // If the player is actively holding/charging the Use interaction on a VALID target, do not break the hold
+            if (session.hasValidTarget() && targetStillValid) {
                 final var imCompType = com.hypixel.hytale.server.core.modules.interaction.InteractionModule.get().getInteractionManagerComponent();
                 final var interactionManager = store.getComponent(playerEntityRef, imCompType);
                 if (interactionManager != null && !interactionManager.getChains().isEmpty()) {
@@ -204,12 +216,14 @@ public final class PlayerAimTargetingSystem extends EntityTickingSystem<EntitySt
                 }
             }
 
-            // Apply debounce so slight aim jitter over items doesn't rapidly cycle target/HUD/interactions
-            if (session.hasTarget() && session.isTargetDebounceActive(nowMs)) {
+            // Apply debounce ONLY if the currently tracked item entity is STILL VALID in the world
+            // (debounce protects against slight crosshair jitter, never keeps dead/absorbed items on screen)
+            if (session.hasValidTarget() && targetStillValid && session.isTargetDebounceActive(nowMs)) {
                 return;
             }
 
-            if (session.hasTarget()) {
+            // Clear target and hide HUD prompt if a target was tracked or prompt is showing
+            if (session.hasTrackedTarget() || session.isPromptShowing()) {
                 session.clearTarget();
                 PickupService.getInstance().hidePrompt(playerEntityRef, playerRef, store);
             }

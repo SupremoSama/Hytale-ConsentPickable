@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.joml.Vector3d;
 
@@ -219,6 +220,8 @@ public final class PickupService {
         // Visual & audio pickup notification
         Player.notifyPickupItem(playerEntityRef, groundStack, itemPos, accessor);
 
+        notifyItemRemoved(itemRef, accessor);
+
         final var session = getOrCreateSession(playerRef.getUuid());
         session.clearTarget();
         hidePrompt(playerEntityRef, playerRef, accessor);
@@ -306,6 +309,8 @@ public final class PickupService {
 
             Player.notifyPickupItem(playerEntityRef, itemStack, itemPos, accessor);
 
+            notifyItemRemoved(itemRef, accessor);
+
             session.clearTarget();
             hidePrompt(playerEntityRef, playerRef, accessor);
 
@@ -341,6 +346,7 @@ public final class PickupService {
             // Update session and prompt with remaining stack
             session.setTarget(itemRef, remainder.getItem().getId(), remainder.getQuantity());
             showPrompt(playerEntityRef, playerRef, remainder, accessor);
+            notifyItemUpdated(itemRef, remainder, accessor);
             return true;
         }
 
@@ -468,11 +474,7 @@ public final class PickupService {
 
             Player.notifyPickupItem(playerEntityRef, groundStack, itemPos, accessor);
 
-            final var session = getSession(playerRef.getUuid());
-            if (session != null && itemRef.equals(session.getTargetedItemRef())) {
-                session.clearTarget();
-                hidePrompt(playerEntityRef, playerRef, accessor);
-            }
+            notifyItemRemoved(itemRef, accessor);
         } else {
             final ItemStack newGroundStack = groundStack.withQuantity(remainingOnGround);
             itemComponent.setItemStack(newGroundStack);
@@ -497,12 +499,7 @@ public final class PickupService {
                 }
             }
 
-            final var session = getSession(playerRef.getUuid());
-            if (session != null && itemRef.equals(session.getTargetedItemRef())) {
-                final String name = getSafeItemName(newGroundStack);
-                session.setTarget(itemRef, name, newGroundStack.getQuantity());
-                showPrompt(playerEntityRef, playerRef, newGroundStack, accessor);
-            }
+            notifyItemUpdated(itemRef, newGroundStack, accessor);
         }
 
         return toPickup;
@@ -556,6 +553,11 @@ public final class PickupService {
                            @Nonnull final PlayerRef playerRef,
                            @Nonnull final ItemStack itemStack,
                            @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        final PlayerTargetSession session = getSession(playerRef.getUuid());
+        if (session != null) {
+            session.setPromptShowing(true);
+        }
+
         final Player player = accessor.getComponent(playerEntityRef, Player.getComponentType());
         if (player == null) {
             return;
@@ -599,6 +601,11 @@ public final class PickupService {
     public void hidePrompt(@Nonnull final Ref<EntityStore> playerEntityRef,
                            @Nonnull final PlayerRef playerRef,
                            @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        final PlayerTargetSession session = getSession(playerRef.getUuid());
+        if (session != null) {
+            session.setPromptShowing(false);
+        }
+
         final Player player = accessor.getComponent(playerEntityRef, Player.getComponentType());
         if (player == null) {
             return;
@@ -606,6 +613,51 @@ public final class PickupService {
         final CustomUIHud existing = player.getHudManager().getCustomHud(ConsentPickupHud.KEY);
         if (existing instanceof ConsentPickupHud consentHud) {
             consentHud.hidePrompt();
+        }
+    }
+
+    /**
+     * Notifies all player sessions that a specific item entity was removed or absorbed,
+     * immediately hiding any prompts and cleaning up targeted sessions.
+     */
+    public void notifyItemRemoved(@Nonnull final Ref<EntityStore> itemRef,
+                                  @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        for (final PlayerTargetSession session : sessions.values()) {
+            if (itemRef.equals(session.getRawTargetedItemRef())) {
+                session.clearTarget();
+                final PlayerRef pRef = Universe.get().getPlayer(session.getPlayerUuid());
+                if (pRef != null) {
+                    final Ref<EntityStore> pEntityRef = pRef.getReference();
+                    if (pEntityRef != null && pEntityRef.isValid()) {
+                        hidePrompt(pEntityRef, pRef, accessor);
+                        final var interactions = accessor.getComponent(pEntityRef, Interactions.getComponentType());
+                        if (interactions != null && ConsentPickupUseInteraction.ROOT_ID.equals(interactions.getInteractionId(InteractionType.Use))) {
+                            interactions.removeInteractionId(InteractionType.Use);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Notifies all player sessions targeting a specific item entity that its stack quantity changed.
+     */
+    public void notifyItemUpdated(@Nonnull final Ref<EntityStore> itemRef,
+                                  @Nonnull final ItemStack newStack,
+                                  @Nonnull final ComponentAccessor<EntityStore> accessor) {
+        for (final PlayerTargetSession session : sessions.values()) {
+            if (itemRef.equals(session.getRawTargetedItemRef())) {
+                final String name = getSafeItemName(newStack);
+                session.setTarget(itemRef, name, newStack.getQuantity());
+                final PlayerRef pRef = Universe.get().getPlayer(session.getPlayerUuid());
+                if (pRef != null) {
+                    final Ref<EntityStore> pEntityRef = pRef.getReference();
+                    if (pEntityRef != null && pEntityRef.isValid()) {
+                        showPrompt(pEntityRef, pRef, newStack, accessor);
+                    }
+                }
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ public class PlayerTargetSession {
 
     @Nullable
     private Ref<EntityStore> targetedItemRef;
+    private boolean promptShowing = false;
 
     @Nullable
     private String lastItemName;
@@ -40,6 +41,27 @@ public class PlayerTargetSession {
         return targetedItemRef != null && targetedItemRef.isValid();
     }
 
+    public boolean hasValidTarget() {
+        return targetedItemRef != null && targetedItemRef.isValid();
+    }
+
+    public boolean hasTrackedTarget() {
+        return targetedItemRef != null;
+    }
+
+    public boolean isPromptShowing() {
+        return promptShowing;
+    }
+
+    public void setPromptShowing(final boolean promptShowing) {
+        this.promptShowing = promptShowing;
+    }
+
+    @Nullable
+    public Ref<EntityStore> getRawTargetedItemRef() {
+        return targetedItemRef;
+    }
+
     @Nullable
     public Ref<EntityStore> getTargetedItemRef() {
         return (targetedItemRef != null && targetedItemRef.isValid()) ? targetedItemRef : null;
@@ -49,6 +71,7 @@ public class PlayerTargetSession {
         this.targetedItemRef = itemRef;
         this.lastItemName = itemName;
         this.lastItemCount = itemCount;
+        this.promptShowing = itemRef != null;
     }
 
     public void clearTarget() {
@@ -56,6 +79,7 @@ public class PlayerTargetSession {
         this.lastItemName = null;
         this.lastItemCount = 0;
         this.lastTargetSeenMs = 0;
+        this.promptShowing = false;
     }
 
     public static final long TARGET_LOSS_DEBOUNCE_MS = 120;
