@@ -150,7 +150,11 @@ public final class ConsentPickupHud extends CustomUIHud {
     }
 
     public void hidePrompt() {
+        if (!this.isVisible) {
+            return;
+        }
         this.isVisible = false;
+        this.currentDisplayName = Message.raw("");
         this.currentItemName = "";
         this.currentItemCount = 0;
         this.currentNearbyCount = 1;

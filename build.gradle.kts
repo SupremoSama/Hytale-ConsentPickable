@@ -66,6 +66,10 @@ tasks.withType<Jar> {
     }
 }
 
+tasks.withType<JavaExec>().configureEach {
+    maxHeapSize = "4G"
+}
+
 publishing {
     repositories {
     }
