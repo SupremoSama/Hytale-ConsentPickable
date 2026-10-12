@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.consentpickable"
-version = "0.0.1"
+version = "0.1.0"
 val javaVersion = 25
 
 repositories {
@@ -21,7 +21,7 @@ dependencies {
 
 hytale {
     addAssetsDependency = true
-    updateChannel = "pre-release"
+    updateChannel = "release"
 }
 
 java {
